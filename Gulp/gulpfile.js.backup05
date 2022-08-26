@@ -1,0 +1,178 @@
+var gulp = require('gulp');
+var gulpSass = require('gulp-sass');
+var gulpAutoprefixer = require('gulp-autoprefixer');
+var gulpConcat = require('gulp-concat');
+var gulpRename = require('gulp-rename');
+var gulpMinifyCSS = require('gulp-minify-css');
+var gulpUglify = require('gulp-uglify');
+// var gulpImagemin = require('gulp-imagemin');
+var gulpWait = require('gulp-wait'); // в Ubuntu не нужен
+// var gulpNop = require('gulp-nop');
+var browserSync = require('browser-sync');
+var del = require('del');
+// var log = require('fancy-log');
+var fs = require('fs');
+
+var dir = { 
+  root: 'public_html' 
+};
+
+['src', 'dist'].forEach(function (production) {
+  var dirProd = {
+    uri: dir.root + '/' + production
+  };
+
+  ['scss', 'css', 'js', 'img', 'fonts'].forEach(function (catalog) {
+    dirProd[catalog] = dirProd.uri + '/' + catalog;
+  });
+
+  dir[production] = dirProd;
+});
+
+// ===============================
+
+gulp.task('watch', gulp.series(function () {
+  browserSync.init({
+    open: false,
+    notify: true,
+    server: { baseDir: dir.src.uri }
+  });
+
+  gulp.watch(dir.src.uri + '/*.html')
+    .on('change', browserSync.reload);
+
+  gulp.watch(dir.src.scss + '/**/*.scss')
+    .on('change', gulp.parallel('compile:sass'));
+}));
+
+// ===============================
+
+gulp.task('compile:sass', function () {
+  return gulp.src(dir.src.scss + '/**/*.scss')
+    .pipe(gulpWait(250)) // в Ubuntu работает и без этого
+    .pipe(gulpSass({ outputStyle: 'expanded' }))
+    .pipe(
+      gulpAutoprefixer([
+        'last 15 versions',
+        '> 1%',
+        'ie 8',
+        'ie 7'
+      ], { cascade: true })
+    )
+    .pipe(gulp.dest(dir.src.css))
+    .pipe(browserSync.reload({ stream: true }));
+});
+
+// ===============================
+
+gulp.task('clean', function () {
+  return del(dir.dist.uri);
+});
+
+// ===============================
+
+gulp.task('pre-build:css', function () {
+  var files = [
+    'main.css',
+    // 'animate.css',
+    // 'sk-fading-circle.css',
+    // 'prism.css'
+  ];
+
+  if (!files.length) {
+    return gulp.src('.');
+  } 
+
+  files = files.map(function (file) {
+    return dir.src.css + '/' + file;
+  });
+
+  return gulp.src(files)
+    .pipe(!files.length ? gulpNop() : gulpConcat('bundle.css'))
+    .pipe(gulp.dest(dir.dist.css));
+});
+
+gulp.task('build:css', gulp.series('pre-build:css', function () {
+  var file = dir.dist.css + '/bundle.css';
+
+  if (!fs.existsSync(file)) {
+    return gulp.src('.');
+  }
+ 
+  return gulp.src(file)
+    .pipe(gulpMinifyCSS())
+    .pipe(gulpRename('bundle.min.css'))
+    .pipe(gulp.dest(dir.dist.css));
+}));
+
+// ===============================
+
+gulp.task('pre-build:js', function () {
+  var files = [
+    // 'jquery.min.js',
+    // 'utils.js',
+    // 'nav.js',
+    // 'main.js',
+    // 'prism.js',
+    // 'single-post.js',
+    // 'jquery.waypoint.js',
+    // 'jquery.anchor-scroll.js',
+    // 'jquery.animate.js',
+    // 'preloader.js',
+    // 'header.js',
+    // 'portfolio.js',
+    // 'contact-form.js',
+    // 'page-about.js'
+  ];
+
+  if (!files.length) {
+    return gulp.src('.');
+  } 
+
+  files = files.map(function (file) {
+    return dir.src.js + '/' + file;
+  });
+
+  return gulp.src(files)
+    .pipe(gulpConcat('bundle.js'))
+    .pipe(gulp.dest(dir.dist.js));
+});
+
+gulp.task('build:js', gulp.series('pre-build:js', function () {
+  var file = dir.dist.js + '/bundle.js';
+
+  if (!fs.existsSync(file)) {
+    return gulp.src('.');
+  }
+
+  return gulp.src()
+    .pipe(gulpUglify())
+    .pipe(gulpRename('bundle.min.js'))
+    .pipe(gulp.dest(dir.dist.js));
+}));
+
+// ===============================
+
+gulp.task('build:img', function () {
+  return gulp.src(dir.src.img + '/**/*')
+    // .pipe(gulpImagemin())
+    .pipe(gulp.dest(dir.dist.img));
+});
+
+// ===============================
+
+gulp.task('build:fonts', function () {
+  return gulp.src(dir.src.fonts + '/**/*')
+    .pipe(gulp.dest(dir.dist.fonts));
+});
+
+// ===============================
+
+gulp.task('build', gulp.series('clean', 'build:css', 'build:js', 'build:img', 'build:fonts'));
+
+// Паралельное выполнение
+// gulp.task('build', gulp.parallel('build:css', 'build:js'));
+
+// Последовательное выполнение
+// gulp.task('build', gulp.series('build:css', 'build:js'));
+

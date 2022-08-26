@@ -1,0 +1,94 @@
+var gulp = require('gulp');
+var gulpSass = require('gulp-sass');
+var gulpAutoprefixer = require('gulp-autoprefixer');
+var gulpHtmlmin = require('gulp-htmlmin');
+var gulpMinifyCss = require('gulp-minify-css');
+var gulpUglify = require('gulp-uglify');
+var browserSync = require('browser-sync');
+var del = require('del');
+
+var SRC = {
+  root: 'src',
+  scss: 'src/scss',
+  css: 'src/css',
+  js: 'src/js'
+};
+
+var DIST = {
+  root: 'dist',
+  css: 'dist/css',
+  js: 'dist/js'
+};
+
+var FILE_MASK = {
+  html: SRC['root'] + '/*.html',
+  scss: SRC['scss'] + '/**/*.scss',
+  css: SRC['css'] + '/**/*.css',
+  js: SRC['js'] + '/**/*.js',
+  'min.js': SRC['js'] + '/**/*.min.js'
+};
+
+gulp.task('run:browser-sync', function () {
+  browserSync({
+    open: false,
+    notify: true,
+    server: { baseDir: SRC['root'] }
+  });
+});
+
+gulp.task('compile:sass', function () {
+  return gulp.src(FILE_MASK['scss'])
+    .pipe(gulpSass({ outputStyle: 'expanded' }))
+    .pipe(gulpAutoprefixer([
+      'last 15 versions',
+      '> 1%',
+      'ie 8',
+      'ie 7'
+    ], { cascade: true }))
+    .pipe(gulp.dest(SRC['css']))
+    .pipe(livereload());
+});
+
+function livereload() {
+  return browserSync.reload({ stream: true });
+}
+
+gulp.task('default', ['run:browser-sync'], function () {
+  gulp.watch(FILE_MASK['html'], browserSync.reload);
+  gulp.watch(FILE_MASK['scss'], ['compile:sass']);
+});
+
+gulp.task('clean', function () {
+  return del.sync(DIST['root']);
+});
+
+gulp.task('build:html', function () {
+  return gulp.src(FILE_MASK['html'])
+    .pipe(gulpHtmlmin({ collapseWhitespace: true }))
+    .pipe(gulp.dest(DIST['root']));
+});
+
+gulp.task('build:css', function () {
+  return gulp.src(FILE_MASK['css'])
+    .pipe(gulpMinifyCss())
+    .pipe(gulp.dest(DIST['css']));
+});
+
+gulp.task('build:min.js', function () {
+  return gulp.src(FILE_MASK['min.js'])
+    .pipe(gulp.dest(DIST['js']));
+});
+
+gulp.task('build:js', ['build:min.js'], function () {
+  var exclude = '!' + FILE_MASK['min.js'];
+  return gulp.src([FILE_MASK['js'], exclude])
+    .pipe(gulpUglify())
+    .pipe(gulp.dest(DIST['js']))
+});
+
+gulp.task('build', [
+  'clean',
+  'build:html',
+  'build:css',
+  'build:js',
+]);
