@@ -281,7 +281,7 @@ computed: {
 
 const store = createStore({ ... });
 store.registerModule('myModule', { ... });
-srore.unregisterModule('myModule');  -->  Удалять можно только динамические
+srore.unregisterModule('myModule');  -->  Удалять можно только динамические модули
 store.hasModule('myModule');
 
 Стоит запомнить что состояние у модулей (а лучше и везде) должно объявляться через ф-цию. 
