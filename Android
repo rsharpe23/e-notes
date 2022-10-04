@@ -1,0 +1,58 @@
+СТРУКТУРА ПРИЛОЖЕНИЯ
+
+Проект для Android состоит из модулей. Каждый модуль имеет три папки:
+* minifests - хранит файл манифеста AndroidManifest.xml;
+* java - хранит файлы с исходным кодом проекта, активити т.п.;
+* res - хранит файлы ресурсов.
+
+Папка res имеет также подпапки:
+* drawable - хранит различные изображения;
+* layout - хранит xml-файлы с разметкой разных активити;
+* mipmap - хранит иконки приложения;
+* values - хранит xml-файлы с данными: цвета, языковые переводы, темы и т.п.
+
+Важно помнить, что Gradle должен поддерживать выбранную версию JDK, иначе будут ошибки типа: "Unsupported class file major version".
+
+--------------------------------------------
+
+ГРАФИЧЕСКИЙ ИНТЕРФЕЙС
+
+Графический интерфейс можно строить как с помощью обычных классов, так и через xml-разметку. Но обычно весь визуал выносят в xml-файл.
+
+Графический интерфейс состоит из контейнеров и элементов. Контейнеры упорядочивают элементы. Контейнеры это классы-наследники от ViewGroup, а элементы - от View.
+
+Контейнеры по сути теже элементы. Их названия обычно заканчиваются на Layout: ConstraintLayout, GridLayout, LinearLayout и т.д.
+
+При создании элементов через классы, в их конструкторы необходимо передавать контекст. Контекст - это то активити, в котором они будут отображаться.
+
+Для установки созданного элемента нужно вызвать метод setContentView и передать в него объект этого самого элемента. Также этот метод может принимать id xmp-файла.
+...
+setContentView(new TextView(this));
+setContentView(R.layout.activity_main);
+
+Чтобы добавить элемент в контейнер нужно использовать метод addView. Но перед этим элемент необходимо дополнительно настроить. Для этого сначала создается объект с параметрами, определяющими его позиционирование внутри контейнера и т.д. После чего элементу необходимо установить их с помощью метода setLayoutParams. Некоторые контейнеры могут требовать дополнительной настройки.
+...
+var layoutParams = new ConstraintLayout.LayoutParams(
+  ConstraintLayout.LayoutParams.WRAP_CONTENT,
+  ConstraintLayout.LayoutParams.WRAP_CONTENT
+);
+
+layoutParams.leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID;
+layoutParams.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
+
+var textView = new TextView(this);
+textView.setText("Hello!");
+textView.setLayoutParams(layoutParams);  -->  Установка параметров элемента
+
+var layout = new ConstraintLayout(this);
+layout.addView(textView);  -->  Добавление элемента в контейнер
+
+setContentView(layout);  -->  Устанавливаем контейнер, с какими-то элементами
+
+
+
+
+
+
+
+* ЧТО ТАКОЕ AndroidManifest.xml ???
