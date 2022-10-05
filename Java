@@ -970,3 +970,15 @@ class Cookie { }
 1) Переходим в каталог src и компилируем: javac com/mypack/MyClass.java
 2) Из этого же каталога вызываем: java com.mypack.MyClass 
 
+Если внутри класса создать объект собственного типа, то из этого объекта можно будет
+вызывать даже закрытые члены.
+...
+class MyClass {
+  public MyClass() {
+    var obj = new MyClass();
+    obj.method();  -->  Так делать можно!
+  }
+
+  private void method() { }
+}
+
