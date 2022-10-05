@@ -215,7 +215,7 @@ public class Foo {
 Константа объявляется с помощью ключевого слова final.
 ...
 public static final double PI = 3.14  -->  Глобальная константа
-void someMethod() {
+void someMethod(final int arg) {  -->  Иммутабельный параметр
   final int age = 23;  -->  Локальная константа
 }
 
