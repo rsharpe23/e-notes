@@ -144,12 +144,32 @@ TextView textView = (TextView) findViewById(R.id.my_name);
 Существует также еще один атрибут для выравнивания - gravity. В отличии от layout_gravity, он выравнивает внутреннее содержимое элемента, а не сам элемент:
 ...
 <TextView 
-  android:layout_width="200dp" layout_height="100dp" 
   android:gravity="bottom"  -->  Выравнивает текст по низу, внутри квадрата 200х100.
-/>                               Еще можно делать комбинации bottom|right и т.п.
+  android:layout_width="200dp"   Еще можно делать комбинации bottom|right и т.п.
+  android:layout_height="100dp" 
+/>                               
 
 Элементы управления:
-* TextView - ;
+* TextView - отображает текст; высота текста задается в sp; чтобы выделить все ссылки в тексте, нужно добавить атрибут autoLink; ссылки могут быть как web, email, phone и т.д.
+* EditText - редактируемый текст; атрибут hint задает подсказку ввода (placeholder);
+атрибут inputType задает клавиатуру ввода (текстовая, числовая, для паролей и т.д).
+* Button - кнопка; атрибут onClick задает обработчик клика;
+* ...
+
+Чтобы в элементе задать обработчик события, необходимо установить специальный атрибут соответсвующий тиму событию, например onClick и т.д. Значение атрибута должно сомпадать с названием публичного метода в активити. Сигнатура метода: void handlerName(View).
+...
+<Button onClick="sendMessage" />  -->  activity_main.xml
+
+class MainActivity {
+  public void sendMessage(View view) { }
+}
+
+Кроме того, обработчик события можно задавать сразу из кода:
+...
+Button btn = findViewById(R.id.myBtn);
+btn.setOnClickListener(v -> { });
+
+
 
 --------------------------------------
 
@@ -159,7 +179,8 @@ TextView textView = (TextView) findViewById(R.id.my_name);
 
 
 
+
 * ЧТО ТАКОЕ AndroidManifest.xml ???
-* ПРОВЕРИТЬ ИЗ КАКОГО КОНТЕКСТА МЕТОД findViewById МОЖЕТ ВОЗВРАЩАТЬ ЭЛЕМЕНТЫ
-* УЗНАТЬ ПРО СОБЫТИЯ И ИХ ОБРАБОТЧИКИ   
+
+* УЗНАТЬ ПРО СОСТОЯНИЯ. ОНИ НУЖНЫ ЧТОБЫ НЕ ПОТЕРЯТЬ ЗНАЧЕНИЯ У ЭЛЕМЕНТОВ ПРИ ИЗМЕНЕНИИ ОРИЕНТАЦИИ ЭКРАНА?
 
