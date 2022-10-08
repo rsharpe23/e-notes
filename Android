@@ -169,7 +169,10 @@ class MainActivity {
 Button btn = findViewById(R.id.myBtn);
 btn.setOnClickListener(v -> { });
 
-
+Для создания простых уведомлений используется класс Toast. Уведомление Toast затухает по истечению заданного времени. Его можно размещать где угодно, а не только снизу. Кроме того, можно менять его внешний вид с помощью собственной xml-разметки.
+...
+Toast toast = Toast.makeText(this, "Hello!", Toast.LENGTH_LONG);
+toast.show();  -->  Показать уведомление на 3.5 сек.
 
 --------------------------------------
 
@@ -183,4 +186,8 @@ btn.setOnClickListener(v -> { });
 * ЧТО ТАКОЕ AndroidManifest.xml ???
 
 * УЗНАТЬ ПРО СОСТОЯНИЯ. ОНИ НУЖНЫ ЧТОБЫ НЕ ПОТЕРЯТЬ ЗНАЧЕНИЯ У ЭЛЕМЕНТОВ ПРИ ИЗМЕНЕНИИ ОРИЕНТАЦИИ ЭКРАНА?
+
+* ЗАЧЕМ НУЖЕН МЕТОД getApplicationContext ?
+
+* УЗНАТЬ ПРО КЛАСС LayoutInflater
 
