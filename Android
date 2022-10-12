@@ -199,7 +199,7 @@ toast.show();  -->  Показать уведомление на 3.5 сек.
 К ресурсам можно обращаться как из java-кода, так и из xml-разметки. 
 Ссылка на ресурс в xml-файле выглядит так: @[имя_пакета:]тип_ресурса/имя_ресурса
 ...
-<resources>  -->  Файл ресурса: res/values/strings.xml
+<resources>  -->  Ресурсы должны находиться в теге <resources> (файл strings.xml)
   <string name="app_name">My App</string>  -->  Задается строковый ресурс
 </resources>
 ...
@@ -229,9 +229,15 @@ res.getQuantityString(R.plurals.flowers, 10, 10);  -->  10 цветков
 
 У метода getQuantityString второй параметр это значение, на основе которого будет подобран подходящий item, а третий параметр - значение которое будет подставлено в %d.
 
-Строковый массив задается с помощью string-array.
+Пример строкового массива:
+...
+<string-array name="languages">
+  <item>JavaScript</item>
+  <item>С++</item>
+</string-array>
 
-
+Пример ресурса цвета: <color name="white">fff</color>
+Пример ресурса размера: <dimen name="size_lg">10dp</dimen>
 
 Таблица всех типов ресурсов: https://metanit.com/java/android/2.4.php
 
