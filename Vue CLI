@@ -58,15 +58,3 @@ npx vue-cli-service build --skip-plugins plugin-name1, plugin-nameN
 
 Команда vue config позволяет изменить глобальную конфигурацию CLI.
 
-
-
-
-
-
-
-
-
-
-
-
-
