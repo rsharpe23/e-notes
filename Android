@@ -384,12 +384,30 @@ android.R.layout.simple_list_item_1
 <style name="my_style">
   <item name="android:layout_width">0dp</item>  -->  Элемент, который принимает стиль
   <item name="android:textColor">#3f51b5</item>      переносит на себя заданные
-  <item name="android:textSize">28sp</item>          свойсва в item'ах
+  <item name="android:textSize">28sp</item>          в item'ах свойсва
 </style>
 
 <TextView style="@style/my_style" />  -->  Теперь размер текста будет 28sp и т.д.
 
+Тема как и стиль определяется с помощью элемента style. Она задает стили для всего приложения в целом (или активити), а не для отдельных элементов. Тема задается в элементе application, который внутри файла манифеста.
+...
+<application android:theme="@style/my_theme">  -->  Тема устанавливается глобально, 
+                                                    для всего приложения
+  <activity  -->  Тема только для активити
+    android:name="MyActivity" 
+    android:theme="@style/my_theme2>
+  </activity>
+</application>
 
+<style name="my_theme">
+  <item name="colorPrimary">@color/purple_500</item>  -->  Семантич. имя colorPrimary 
+                                                           ссылается на стиль purple_500
+
+  <item name="android:textSize">28sp</item>  -->  Все элементы, использующие данную
+</style>                                          тему будут иметь размер текста в 28sp
+
+<ConstraintLayout android:theme="@style/my_theme3">  -->  Контейнер также может иметь
+</ConstraintLayout>                                       собственную тему
 
 --------------------------------------
 
