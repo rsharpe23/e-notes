@@ -433,6 +433,37 @@ android.R.layout.simple_list_item_1
 
 --------------------------------------
 
+ФРАГМЕНТЫ
+
+Это часть визуального интерфейса, которая может переиспользоваться в различных местах приложения. У фрагмента может быть соственный файл разметки. Он существует в контексте активити и имеет свой жизненный цикл. Их удобно использовать на больших экранах.
+
+Фрагмент определяется классом, который наследуется от Fragment. Задать разметку можно либо в конструкторе, либо из метода onCreateView с помощью инфлатера.
+...
+class ContentFragment extends Fragment {
+  public ContentFragment() {
+    super(R.layout.fragment_content);  -->  Так задается xml-разметка, 
+  }                                         вместо вызова setContentView
+}
+
+Чтобы вставить фрагмент в активити, нужно в разметке активити определить контейнер FragmentContainerView с атрибутом name, где указывается класс фрагмента.
+...
+<FragmentContainerView 
+  android:id="@+id/fragment_container_view"
+  android:name="com.myapp.ContentFragment" 
+/>
+
+Чтобы задать логику, нужно переопределить метод onViewCreated.
+
+Чтобы установить фрагмент из java-кода, нужно из активити выполнить такую связку: 
+(в этом случае для FragmentContainerView не нужно указывать атрибут name)
+...
+getSupportFragmentManager().beginTransaction()
+  .add(R.id.fragment_container_view, new ContentFragment()).commit();
+
+
+
+--------------------------------------
+
 РАЗНОЕ
 
 Важно помнить, что Gradle должен поддерживать выбранную версию JDK, иначе будут ошибки типа: "Unsupported class file major version".
