@@ -488,6 +488,40 @@ public void run() {  -->  Вызывается где-то в активити
 
 --------------------------------------
 
+WEBVIEW И РАБОТА С СЕТЬЮ
+
+WebView - это элемент для рендеринга html-кода, основанный на движке WebKit. 
+Его можно использовать внутри приложения как встраиваемый браузер. Но JavaScript, 
+по умолчанию, в нём отключен.
+...
+<WebView android:id="@+id/web_browser" />
+
+Для получения доступа к интернету, нужно указать в файле манифеста такое разрешение:
+<uses-permission android:name="android.permission.INTERNET" />
+
+Чтобы загрузить страницу нужно воспользоваться методом loadUrl.
+...
+WebView browser = findViewById(R.id.web_browser);
+browser.loadUrl("https://");
+
+Чтобы отобразить html-код нужно использовать метод loadData.
+browser.loadData("<html><body><h1>Hello World!</h1></body></html>");
+
+Для загрузки данных по сети необходимо использовать класс HttpsURLConnection. 
+Это напоминает использование CURL на backend'е.
+...
+var url = new URL("https://");
+
+var connection = (HttpsURLConnection) url.openConnection();
+connection.setRequestMethod("GET");
+connection.setReadTimeout(10000);  -->  Таймаут перед выполнением 10 сек.
+connection.connect();
+
+var reader = new InputStreamReader(connection.getInputStream());
+while (reader.readLine() != null) { }
+
+--------------------------------------
+
 РАЗНОЕ
 
 Важно помнить, что Gradle должен поддерживать выбранную версию JDK, иначе будут ошибки типа: "Unsupported class file major version".
