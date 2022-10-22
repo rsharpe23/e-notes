@@ -288,7 +288,8 @@ res.getQuantityString(R.plurals.flowers, 10, 10);  -->  10 цветков
 </activity>
 
 Элемент uses-sdk позволяет управлять версией Android SDK.
-Элемент uses-permission необходим для установки разрешений (на использование камеры, списка контактов и т.д).
+
+Элемент uses-permission необходим для установки разрешений (на использование камеры, списка контактов и т.д; про контакты подребнее написано в главе о провайдерах контента).
 
 Поддержка разных разрешений определяется элементом supports-screen. В его атрибутах указывается на каких разрешениях может работать приложение.
 
@@ -650,6 +651,69 @@ String value = getArguments().getString("key");
 
 --------------------------------------
 
+ПРОВАЙДЕРЫ КОНТЕНТА
+
+Они необходимы для доступа к контенту пользователя на девайсе, например это могут быть контакты, фотоки, отметки о звонках и т.д.
+
+Встроенные провайдеры андроид:
+* AlarmClock - управление будильником;
+* Browser - история браузера и закладки;
+* CalendarContact - календарь и информация о событиях;
+* CallLog - информация о звонках;
+* ContactsContact - контакты;
+* MediaStore - медиа-файлы;
+* SearchRecentSuggestions - подсказки по поиску;
+* Settings - системные настройки;
+* UserDictionary - словарь слов, использующиеся для быстрого набора;
+* VoicemailContract - записи голосовой почты;
+
+Для работы с контентом используется метод getContentResolver. Он возвращающий объект, 
+с помощью которого можно выполнять запросы в БД. Обычно весь контент пользователя харнится в базе SQLite.
+
+При работе с контактами можно получать и изменять их список. Чтобы обратиться к базе контактов, используется константа: ContactsContract.Contacts.CONTENT_URI. Также для доступа к контактам надо установить разрешение: android.permission.READ_CONTACTS.
+...
+ContentResolver cResolver = getContentResolver();
+Cursor cursor = cResolver.query(ContactsContract.Contacts.CONTENT_URI, ...);
+while (cursor.moveToNext()) { ... }
+
+Начиная с 23 версии андроид, получить разрешения для работы с провайдерами контента можно только непосредсвенно перед работой с ними. Раньше, достаточно было установить нужное разрешение в файле манифеста.
+
+Чтобы установить разрешение из активити, нужно вызвать специальное диалоговое окно:
+ActivityCompat.requestPermissions(this, new String[]
+  { MANIFEST.permission.READ_CONTACTS }, REQUEST_CODE_READ_CONTACTS);
+
+Проверить наличие того или иного разрешения в активити можно так:
+...
+int hasPermission = ContextCompat.checkSelfPermission(this,
+  MANIFEST.permission.READ_CONTACTS);
+if (hasPermission == PackageManager.PERMISSION_GRANTED) { ... }
+
+Чтобы обработать выбор из диалового окна, нужно переопределить метод onRequestPermissionsResult. Если приложение получает разрешение, то этот метод больше 
+не будет вызываться для него (того разрешения).
+
+Чтобы изменять контакты нужно получить разрешение: android.permission.WRITE_CONTACTS.
+Для записи новых контактов в базу используется метод insert класса ContentResolver.
+Данные нужно записывать в две таблицы "raw contacts" и "data".
+...
+ContactResolver cResolver = getContentResolver();
+var cValues = new ContactValues();
+
+// Здесь устанавливается название и тип контакта
+cValues.put(ContactsContract.RawContacts.ACCOUNT_NAME, value);
+cValues.put(ContactsContract.RawContacts.ACCOUNT_TYPE, value);
+
+Uri newUri = cResolver.insert(ContactsContract.RawContacts.CONTENT_URI, cValues);
+
+cValues.clear();
+cValues.put(ContactsContract.Data.RAW_CONTACT_ID, ContentUris.parseId(newUri));
+cValues.put(ContactsContract.Data.MIMETYPE,
+  ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
+cValues.put(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, value);
+
+cResolver.insert(ContactsContract.Data.CONTENT_URI, cValues);
+
+--------------------------------------
+
 РАЗНОЕ
 
 Важно помнить, что Gradle должен поддерживать выбранную версию JDK, иначе будут ошибки типа: "Unsupported class file major version".
@@ -675,4 +739,6 @@ xml-разметкой.
 
 Tween-анимация - это анимация различных свойств объекта, при которой система сама расчитывает промежуточные значения с помощью интерполяции. Свойства анимации задаются 
 в xml-файле, из папки anim. Это может быть: перемещение, вращение, затухание и т.д.
+
+
 
