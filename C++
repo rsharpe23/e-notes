@@ -503,19 +503,22 @@ delete[] nums3;  -->  удаляются они так
 
 ООП
 
-При определении классов, нужно обязательно указывать точку c запятой после фигурных скобок: class MyClass { };
+При определении классов, нужно обязательно указывать точку c запятой после 
+фигурных скобок: class MyClass { };
 
-Модификаторы членов указываются единожды на целую группу:
+Модификаторы членов указываются единожды на целую группу. 
+Если модификатор отсутствует, то по умолчанию задается private.
 ...
 class Person 
 {
-public:
-  string name;
+  string name;  -->  также приватные члены класса
   int age;
+
+public:
   void move() { }
 
 private:
-  void doMove() { }  
+  void doMove() { }
 
 protected:
   void onMovement() { }
@@ -536,18 +539,18 @@ personPtr->age = 19;
 ...
 class Person 
 {
-  public:
-    string name;
-    string age;
+public:
+  string name;
+  string age;
 
-    Person(string _name, int _age) {
-      name = _name;
-      age = _age;  
-    }
+  Person(string _name, int _age) {
+    name = _name;
+    age = _age;  
+  }
 
-    Person() : Person("Trump", 23)  -->  вызов одного конструктора из другого
-    { 
-    }
+  Person() : Person("Trump", 23)  -->  вызов одного конструктора из другого
+  { 
+  }
 };
 
 Если у класса есть конструкторы, то при создании объекта нужно вызывать хотя бы один:
@@ -564,6 +567,89 @@ int& age;
 
 Person(string _name, int _age) : name(_name), age(_age) 
 {
+}
+
+В C++ почти всегда необходимо разделять определение и реализацию методов. 
+Определение класса, вместе с прототипами его методов, должно быть в заголовочных файлах, а реализация - в файлах cpp. Также, в этом случае, в cpp-файлах методы должны записываться как: тип имя_класса::имя_метода(параметры) { }.
+...
+Файл person.h:
+
+class Person 
+{
+public:
+  string name;
+  int age;
+  Person(string _name, int _age);
+  void move();
+};
+
+Файл person.cpp:
+
+Person::Person(string _name, int _age) {
+  name = _name;
+  age = _age;
+}
+void Person::move() {
+  cout << name << " is moving!" << endl;
+}
+
+В C++ существуют дружественные ф-ции. Их особенность в том, что они имееют доступ 
+к приватным членам класса, хотя при этом сами не входят в него.
+...
+class Product
+{
+  friend void buy(Product&);  -->  какая-то внешняя ф-ция
+
+public:
+  Product() {
+    price = 23;
+  }
+
+private:
+  int price;
+};
+
+void buy(Product& product) {
+  cout << "Bought at price " + prouct.price;
+}
+
+int main() {
+  Product product();
+  buy(product);
+  return 0;
+}
+
+Дружественными могут быть и методы другого класса, но если в перспективе планируется расширять их кол-во, то лучше сделать дружественным весь класс.
+...
+class Product;  -->  что-то вроде прототипа класса
+
+class Customer
+{
+  void buy(Product& product) {
+    cout << "Bought at price " + prouct.price;
+  }
+}
+
+class Product 
+{
+  friend class Customer;
+
+public:
+  Product() {
+    price = 23;
+  }
+
+private:
+  int price;
+}
+
+int main() {
+  Product product();
+
+  Customer customer;
+  customer.buy(product);
+
+  return 0;
 }
 
 
