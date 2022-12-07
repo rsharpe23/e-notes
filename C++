@@ -519,7 +519,7 @@ private:
 
 protected:
   void onMovement() { }
-}
+};
 
 Объект класса может создаваться простым объявлением его переменной:
 ...
@@ -531,6 +531,40 @@ person.move();                    во внешнем коде
 ...
 Person* personPtr = &person;
 personPtr->age = 19;
+
+Конструктор объявляется следующим образом:
+...
+class Person 
+{
+  public:
+    string name;
+    string age;
+
+    Person(string _name, int _age) {
+      name = _name;
+      age = _age;  
+    }
+
+    Person() : Person("Trump", 23)  -->  вызов одного конструктора из другого
+    { 
+    }
+};
+
+Если у класса есть конструкторы, то при создании объекта нужно вызывать хотя бы один:
+...
+Person person1 = Person("Aik", 23);
+Person person2("Luka", 16);  -->  сокращенный вариант объявления
+Person person3();  -->  объявление, с вызовом конструктора без параметров
+
+Константы и ссылки внутри класса инициализируются особым образом. Это из-за того, 
+что они уже должны быть заданы до того, как код внутри конструктора начнет выполнятся.
+...
+const string name;
+int& age;
+
+Person(string _name, int _age) : name(_name), age(_age) 
+{
+}
 
 
 
