@@ -628,7 +628,7 @@ class Customer
   void buy(Product& product) {
     cout << "Bought at price " + prouct.price;
   }
-}
+};
 
 class Product 
 {
@@ -641,18 +641,61 @@ public:
 
 private:
   int price;
-}
+};
 
 int main() {
   Product product();
-
   Customer customer;
   customer.buy(product);
-
   return 0;
 }
 
 
+Ключевое слово this означает указатель на текущий объект класса, внутри него самого.
+...
+class Point {
+  int x;
+  int y;
+
+public:
+  Point(int x, int y) {
+    this->x = x;  -->  в основном this применяется чтобы разграничить параметры, 
+    this->y = y;       которые имеют такие же названия что и поля
+  }
+
+  Point& move() {
+    x++;
+    y++;
+    return *this;  -->  this это указатель и его надо разыменовать перед тем как
+  }                     возвращать, ну а возвращать надо именно тот объект, в котором
+};                      произошли изменения, а не его копию, поэтому по ссылке
+
+int main() {
+  Point point(5, 10);
+  point.move().move();
+  return 0;
+}
+
+Статические члены класса определяются с ключ. словом static:
+...
+class Accout
+{
+  const static bool vip = true;  -->  статич. константы могут быть заданы 
+  static int rate;                    сразу, внутри класса
+public:
+  static int getRate() {
+    return rate;
+  }
+}
+
+int Account::rate = 8;  -->  статич. поля должны задаваться вне класса
+
+int main() {
+  Account accout;
+  cout << Account::getRate();  -->  доступ к статич. членам осуществл. через ::
+  cout << accout.getRate();    -->  но можно и через переменную класса
+  return 0;
+}
 
 --------------------------------------
 
