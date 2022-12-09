@@ -868,6 +868,10 @@ public:
     this->value = value;
   }
 
+  Counter(const string& str) {  -->  так реализуется обратное преобразование,
+     value = stoi(str);              т.е. из string в Counter
+  }
+
   operator int() const {  -->  для неявного преоразования
     return value;
   }
@@ -875,17 +879,15 @@ public:
   explicit operator string() const {  -->  для явного преоразования
     return to_string(value);
   }
-
-  Counter(const string& str) {  -->  через конструктор реализуется обратное
-     value = stoi(str);              преобразование, т.е. из string в Counter
-  }  
 };
 
-Counter counter(60);
-int num = counter;
-string str = (string)counter;
-Counter counterFromSrt("300");
 
+Counter counterFromSrt("300");  -->  ссылочному параметру ф-ции или конструктора 
+                                     можно передавать литерал, но в этом случае 
+Counter counter(60);                 параметр должен быть константным; 
+int num = counter;                                      
+string str = (string)counter;        это относится не только к преобразованию типов
+                
 --------------------------------------
 
 ИСКЛЮЧЕНИЯ
