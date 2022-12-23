@@ -1,0 +1,97 @@
+В CMake есть цель (target) - компонент, который нужно собрать. Это может быть
+испольняемый файл, статическая или динамическая библиотека.
+
+В CMake есть проект (project) - это набор компонентов, по смыслу похожий на Solution 
+в Visual Studio.
+
+В CMake есть флаги (flags) - это аргументы командной строки для компилятора,
+компоновщика и других утилит, вызываемых при сборке.  
+
+В CMake можно задавать переменные. В процессе интерпритации CMakeLists, система сборки
+вычисляет ряд встроенных? переменных для каждой цели, получая тем самым флаги.
+
+
+
+НАПИСАТЬ ПРО ОБЪЯВЛЕНИЕ ПЕРЕМЕННЫХ
+
+
+
+Минимальный файл CMakeLists должен быть таким:
+...
+cmake_minimum_required(VERSION 3.8)  -->  минимальная версия CMake для использования
+project(MyProject)  -->  название проекта (могут доп. быть ещё LANGUAGES и VERSION)
+
+В одном проекте может быть множество файлов CMakeLists, в разных подкаталогах.
+
+Чтобы подключить дополнительный CMakeLists из подкаталога:
+add_subdirectory(<путь к подкаталогу>)
+
+При определении цели, сначала указывается имя испольняемого файла, а затем список исходников. Список задается как последовательность строк через пробел.
+...
+add_executable(MyProgram main.cpp fun.h fun.cpp)
+
+Целью также может быть библиотека. Параметр STATIC означает, что библиотека статическая, а SHARED - динамическая.
+...
+add_library(MyLib STATIC tools.h tools.cpp)
+
+Для организации зависимостей между библиотеками не следует использовать директивы
+include_directories, add_difinitions, add_compile_options.
+
+Вместо них нужно использовать:
+* target_link_libraries - для добавления файлов библиотек, от которых зависит цель;
+* target_include_directories - для добавления путей к заголовкам, от кот. зависит цель;
+* target_compile_definitions - для добавления макросов, с которыми собирается цель;
+* target_compile_options - для добавления специфичных флагов компилятора.
+
+Кроме того для настроек можно выбирать области:
+* PUBLIC - настройка видима для текущей цели и для всех её зависимостей;
+* PRIVATE - настройка видима только для текущей цели;
+* INTERFACE - настройка видима только для зависимостей.
+
+Чтобы подключить скомпилированную библиотеку:
+...
+target_include_directories(MyProject PUBLIC deps/zip/include)
+target_link_libraries(MyProject PUBLIC deps/zip/lib/file.so)
+
+Чтобы подключить библиотеку через её исходники:
+...
+add_subdirectory(deps/zip)  -->  здесь должен располагаться файл CMakeLists
+target_link_libraries(MyProject ziplib)  -->  ziplib это название проекта из CMakeLists
+
+Нельзя записывать одни настройки с областью видимости, а други без. Если область видимости присутствует, то и все другие настройка также должны их содержать.
+
+Для указания стандарта языка и флагов, не нужно добавлять флаги напрямую!
+target_compile_options(MyProject PRIVATE -std=c++11)  -->  устаревший метод
+
+Правильные вариант указания стандартов (если один не подключается, то берется другой):
+...
+target_compile_features(MyProject cxx_std_17)  -->  подключение C++ 17
+target_compile_features(MyProject cxx_std_14)  -->  альтернативное подключение C++ 14
+target_compile_features(MyProject cxx_std_11)  -->  и ещё одна альтернатива C++ 11
+
+Вариант указания функционала, где библиотеке требуются возможности лямбд и override:
+target_compile_features(MyLib PUBLIC cxx_lambdas PRIVATE cxx_override)
+
+CMake позволяет объявлять ф-ции и макросы. Кроме того здесь также есть и условные конструкции с циклами: function(name) / endfunction(), macro(name) / endmacro().
+
+Добавление специфических исходников делается через target_sources:
+...
+add_library(MyLib hello.cxx)
+
+if( WIN32 )
+  target_sources(MyLib PRIVATE system_win.cxx)
+elseif( UNIX )
+  target_sources(MyLib PRIVATE system_posix.cxx)
+else()
+  target_sources(MyLib PRIVATE system_generic.cxx)
+endif()
+
+Для получения путей к библиотеке лучше использовать ф-цию find_package. Она принимает имя библиотеки и создает переменные, в которых содержатся различные пути к её файлам. Переменные создаются через специальный скрипт с расширением ".cmake".
+...
+find_package(Bullet REQUIRED)  -->  у библиотеки Bullet вызывается скрипт Bullet.cmake,
+                                который создает две переменные BULLET_DIRS и BULLET_LIBS
+
+target_include_directories(MyProject ${BULLET_DIRS})  -->  с помощью этой директивы
+                                                       регистрируются каталоги библиотек
+target_link_libraries(MyProject ${BULLET_LIBS})
+
