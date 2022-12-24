@@ -31,7 +31,7 @@ add_library(MyLib STATIC tools.h tools.cpp)
 include_directories, add_difinitions, add_compile_options.
 
 Вместо них нужно использовать:
-* target_link_libraries - для добавления файлов библиотек, от которых зависит цель;
+* target_link_libraries - для линковки файлов библиотек, от которых зависит цель;
 * target_include_directories - для добавления путей к заголовкам, от кот. зависит цель;
 * target_compile_definitions - для добавления макросов, с которыми собирается цель;
 * target_compile_options - для добавления специфичных флагов компилятора.
