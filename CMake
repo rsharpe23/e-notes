@@ -43,8 +43,8 @@ include_directories, add_difinitions, add_compile_options.
 
 Простой способ подключить скомпилированную библиотеку:
 ...
-target_include_directories(MyProject PUBLIC deps/zip/include)
-target_link_libraries(MyProject PUBLIC deps/zip/lib/file.so)
+target_include_directories(MyProject PUBLIC zip/include)  
+target_link_libraries(MyProject PUBLIC zip/lib/file.so)  -->  пути должны быть полными!
 
 Чтобы подключить библиотеку через её CMakeLists:
 ...
