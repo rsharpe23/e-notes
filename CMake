@@ -23,7 +23,7 @@ add_executable(MyProgram main.cpp fun.h fun.cpp)
 add_subdirectory(<путь к подкаталогу>)
 
 Целью также может быть библиотека. Параметр STATIC означает, что библиотека
-статическая, а SHARED - динамическая.
+статическая, а SHARED - динамическая. Эта директива создает библиотеку из исходников!
 ...
 add_library(MyLib STATIC tools.h tools.cpp)
 
