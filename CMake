@@ -46,9 +46,9 @@ include_directories, add_difinitions, add_compile_options.
 target_include_directories(MyProject PUBLIC deps/zip/include)
 target_link_libraries(MyProject PUBLIC deps/zip/lib/file.so)
 
-Чтобы подключить библиотеку через её исходники:
+Чтобы подключить библиотеку через CMakeLists:
 ...
-add_subdirectory(deps/zip)  -->  здесь должен располагаться файл CMakeLists
+add_subdirectory(deps/zip)  -->  здесь должен располагаться её CMakeLists
 target_link_libraries(MyProject ziplib)  -->  ziplib это название проекта из CMakeLists
 
 Нельзя записывать одни настройки с областью видимости, а други без. Если область
