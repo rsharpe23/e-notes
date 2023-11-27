@@ -1,0 +1,126 @@
+﻿Установка:
+  apt-get update
+  apt-get install git
+  apt-get install meld (утилита для разрешения конфликтов при слиянии веток)
+
+Глобальные настройки:
+  git config --global user.name "username"
+  git config --global user.email username@mail.to
+  git config --global merge.tool meld (установить meld как утилиту для слияния по умол.)
+  git config --list (посмотреть конфигурационные данные)
+
+Для Windows:
+
+  git config --global --add merge.tool kdiff3
+  git config --global --add mergetool.kdiff3.path "C:/Program Files/KDiff3/kdiff3.exe"
+  git config --global --add mergetool.kdiff3.trustExitCode false
+
+  git config --global --add diff.guitool kdiff3
+  git config --global --add difftool.kdiff3.path "C:/Program Files/KDiff3/kdiff3.exe"
+  git config --global --add difftool.kdiff3.trustExitCode false
+
+------------------------------------------------------------------------------------
+
+Первоначальная инициализация:
+  git init
+
+Посмотреть текущий статус проекта:
+  git status
+
+Добавить новые или проиндексировать измененные файлы:
+  git add .
+  git add filename.ext
+  git add *.ext
+
+Удалить файл из индексации:
+  git rm --cached filename.ext
+  git rm --cached -r .
+
+Закоммитить проиндексированные файлы:
+  git commit -m "comment" (параметр -m позволяет добавить комментарий ко коммиту
+  напрямую, без использования текстового редактора)
+
+Переключиться на нужный коммит:
+  git checkout commit (commit - хеш коммита, можно сокращенный; все файлы в проекте
+  станут такими, какими они были в выбранном коммите)
+
+Выполнить откат неиндексируемых файлов до предыдущего коммита:
+  git checkout -- filename.ext
+
+Выполнить откат последнего коммита (rollback):
+  git reset HEAD~1
+  
+  Если произошла ошибка типа: "fatal: ambiguous argument 'HEAD~1': unknown revision or
+  path not in the working tree", пишем следующее:
+    git update-ref -d HEAD 
+    git rm --cached -r
+
+Посмотреть историю коммитов и их содержимое:
+  git log
+  git log --pretty=format:"%h - %an, %ar : %s" ("красивый" лог)
+  git log --since=n.weeks (лог за последние n-недель)
+  git log --pretty=format:"%h - %an, %ar : %s" --since=2.weeks
+  git log -p -n (посмотреть содержимое последних n-коммитов)
+
+Создать новую ветку:
+  git branch branchname
+
+Переключиться на новую ветку:
+  git checkout branchname
+  git checkout -b branchname (создать новую ветку branchname и переключиться на нее)
+  git checkout -b master origin/master (создать локальную ветку master на основе
+  удаленной origin/master)
+
+Удалить ветку:
+  git branch -d branchname (удалить локальную ветку)
+  git push origin --delete branchname (удалить отдаленную ветку)
+
+Посмотреть ветки в проекте:
+  git branch
+  git branch -a (посмотреть все ветки локальные + удаленные)
+  git branch -v (посмотреть вместе с последними коммитами)
+
+Слияние веток:
+  git merge branchname (залить ветку "branchname" в текущую)
+  git mergetool (если происходит конфлик в слиянии, тогда выполняем слияние вручную 
+  с помощью утилиты по умолчанию)
+  git mergetool -t meld (воспользоваться конкретной утилитой "meld" один раз)
+
+  Если появилось сообщение: fatal: refusing to merge unrelated histories, тогда можно
+  сделать так:
+  
+  git merge branchname --allow-unrelated-histories (разрешить объединение двух веток,
+  которые по умолчанию не имеют общей базы)
+
+  Слияние лучше всего проводить так: создаем новую фичу, затем мержим в нее данные из
+  основной ветки, проверяем что получить, разрешаем конфликты (если они есть) и только
+  потом мержим полученное обратной, в основную ветку. После чего, необходимо отправить
+  все в репозиторий, выполнив git push... для основной ветки. 
+
+  Также, перед отправкой файлов в репозиторий, если перед этим выполнялось их слияние с
+  разрешением конфликтов, необходимо удалить полученные бекапы от этих файлов, иначе в
+  репозиторий попадет мусор.
+
+Добавить репозиторий:
+  git remote
+  git remote -v (посмотреть все доступные репозитории)
+  git remote add origin https://github.com/username/projectname.git
+
+Добавить данные в репозиторий:
+  git push origin master (протолкнуть все коммиты в репозиторий, где origin - имя
+  сервера, master - отправляемая ветка)
+  
+  Если произошла ошибка типа: "error: failed to push some refs to...", пишем следующее:
+  git pull --rebase origin master и снова git push origin master
+
+Клонировать проект с репозитория:
+  git clone https://github.com/username/projectname.git
+
+Получить новые данные из репозитория и положить их в папку .git:
+  git fetch
+  git fetch origin
+
+Забрать полученные из репозитория данные из папки .git и положить их в папку с проектом:
+  git pull
+  git pull origin master
+

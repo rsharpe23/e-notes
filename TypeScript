@@ -1,0 +1,1076 @@
+НАСТРОЙКА ПРОЕКТА
+
+Чтобы установить TS, нужно выполнить команду: npm install -g typescript
+Обновить TS можно так: npm update -g typescript
+Узнать текущую версию: tsc -v. Вызов справки: tsc -h
+
+Чтобы скомпилировать ts-файл нужно выполнить команду: tsc file.ts
+После этого в каталоге появится одноименный файл с расширением .js
+
+Команде "tsc" можно передать ряд доп. настроек:
+* -w (--watch) - отслеживает изменения файлов и автоматически компилирует их;
+* -t (--target) - версия ECMAScript для результирующих js-файлов: ES3 (по умолчан.), 
+  ES5, ES6 / ES2015, ES7 / ES2016, ES2017, ES2018, ES2019, ES2020, ESNext;
+* -m (--module) - тип модулей в js-файлах: none, commonjs, AMD, ES2015;
+* --init - создать файл tsconfig.json с базовыми настройками проекта;
+* --removeComments - удалить все пользовательские комментарии;
+* --outDir - задать папку для результирующих файлов;
+* --outFile - объединить несколько ts-файлов в один js-файл;
+* --noEmitOnError - запретить компиляцию, если в ts-файлах есть синтаксические ошибки
+  (по умолчанию, ts-файлы компилируются в js даже если имеют ошибки).
+
+Кроме дого можно одновременно задать сразу несколько настроек:
+tsc -t ES6 --outDir dist -m commonjs main.ts
+
+Задать настройки можно и с пом. файла tsconfig.json. Он используется только тогда,
+когда команда "tsc" вызывается сама по себе, без названия файла.
+
+Этот файл имеет следующую структуру:
+...
+{
+  "compileOnSave": true,  -->  тоже, что и флаг -w
+  "compilerOptions": {},  -->  настройки компиляции (target, outFile и т.д.) 
+  "exclude": [],  -->  исключаемые при компиляции файлы и директории
+  "files": [],    -->  компилировать только эти файлы
+}
+
+Если секция "files" отсутсвует, то будут компилироваться все ts-файлы в проекте.
+Если "exclude" и "files" заданы одновременно, то всё что в exclude будет игнорироваться.
+
+Создать его можно с помощью команды tsc --init (либо вручную).
+
+----------------------------------
+
+ОСНОВЫ ЯЗЫКА
+
+Переменные определяются также, как и в JS: через let и const.
+
+Основные типы:
+* boolean - логические значения;
+* number - числа;
+* string - строки;
+* Array - массивы;
+* Enum - перечисления;
+* Never - отсутсвие значения;
+* any - любые значения;
+
+А также: Symbol, null, undefined и кортежи.
+
+Тип задается через двоеточие, после названия переменной:
+...
+let x: number = 23;
+let msg: string = "hello!";
+let isValid: boolean = true;
+let items: number[] = [1, 2, 3];
+
+Тип Never используется в качестве возвращаемого типа функций, которые генерируют 
+или возвращают ошибку. (ПЕРЕПИСАТЬ ОПРЕДЕЛЕНИЕ)
+
+Тип number представляет собой аналог double. Т.е. все объявляемые числа - это числа 
+с плавающей точкой, даже те, что задаются как целые (в JS также).
+
+Строки задаются также, как и в JS: через одинарные, двойные либо косые кавычки.
+
+Для очень больших чисел используется тип bigint: 
+...
+let x: bigint = BigInt(100);
+let y: bigint = 100n;  -->  альтернативный способ задать bigint
+
+Тип any позволяет задавать переменной любые значения. По умолчанию, если у переменной
+не задан тип и она не проинициализирована, то для неё будет задан тип any:
+...
+let msg: any = "hello";
+msg = 23;
+
+let x;  -->  здесь будет тип any
+x = 10;
+
+let y = 10;  -->  а здесь он определится на основе задаваемого значения
+
+Если тип переменной неизвестен, то его можно проверить с помощью оператора typeof, 
+как это делается в JS. Этот оператор возвращает следующие значения: "string", "number",
+"bigint", "boolean", "symbol", "undefined", "object", "function".
+
+Тип возвращаемого значения ф-ции указывается после круглых скобок. Если ф-ция ничего 
+не возвращает, то указывается тип void (используется только в ф-циях). Также как и для
+переменных, тип возвращаемого значения ф-ции может определяться неявно.
+...
+function add(a: number, b: number): number {
+  return a + b;
+}
+
+function print(msg: string) : void {
+  console.log(msg);
+}
+
+В отличии от JS, в TS при вызове ф-ции должно передаваться ровно столько аргументов,
+сколько указано в объявлении. Необязательные параметры помечаются знаком вопроса.
+И они должны идти строго после обязательных.
+...
+function getName(firstName: string, lastName?: string) {
+  return firstName + ' ' + lastName;
+}
+
+Параметры по умолчанию задаются также, как и в JS.
+
+Тип ф-ции или её сигнатура записывается так: (параметр: тип) => тип_зелультата
+Например можно объявить переменную, которая будет представлять собой ф-цию:
+...
+let print: () => void = fn;  -->  переменная print имеет тип () => void 
+                                  и ей присваивается значение fn
+function fn() {
+  console.log('hello!');
+}                          
+
+Функция как параметр другой ф-ции выглядит так:
+...
+function op(x: number, y: number, fn: (a: number, b: number) => number) {
+  return fn(x, y);
+}
+
+Если какой-то тип часто повторяется в коде, то для него можно сделать псевдоним:
+...
+type MyFunc = (a: number, b: number) => number;
+
+function op(x: number, y: number, fn: MyFunc) {
+  return fn(x, y);
+}
+
+Стрелочные ф-ции определяются также как и в JS. Они могут быть как с явно заданными
+типами, так и без типов (как в C#).
+
+Объединение "union" позволяет комбинировать вместе другие типы. Оно указывается как
+перечеть нескольких типов разделенных вертикальным слэшем:
+...
+let id: number | string;  -->  можно присваивать как число так и строку
+id = 23;
+id = "opkjs";
+
+Также объединения могут использоваться для определения параметров ф-ции:
+function fn(id: number | string) {}
+
+По умолчанию null и undefined применяются также, как в JS. Но если при компиляции
+указать флаг --strictNullCheck, то эти значения нельзя будет присваивать переменным
+других типов, например number или string (ПЕРЕПИСАТЬ ОПРЕДЕЛЕНИЕ).
+
+Иногда null можно комбинировать с другим типом, например когда данные приходят из БД:
+let userId: number|null = getUserId();  -->  неизвестно, что придёт из вне
+
+В TS есть спец. оператор (non-null assertion). Он использ. в режиме --strictNullCheck,
+когда тип скомбинирован с null, но при этом мы точно знаем что он не будет null:
+...
+let el: HTMLElement|null = document.getElementById('root');
+el!.innerText = 'hello';  -->  без "!" будет ошибка "Object is possibly null"
+
+Альтернативным вариантом может быть явное преобразование типа. Выполняется оно 
+с помощью угловых скобок, либо через оператор "as":
+...
+let el = <HTMLElement>document.getElementById('root');
+el = document.getElementById('div') as HTMLElement;
+el.innerText = 'hello';
+
+Приведение типа в TS работает не так, как в других языках. На самом деле оно не
+приводит значение к другому типу, а просто уточняет его для компилятора, чтобы тот мог
+знать, например, что объект одного типа, на самом деле является также объектом другого
+типа, и ему доступны дополнительные свойства.
+
+Посему, операторы приведения типов в TS не возвращают null, если преведение не удалось
+выполнить (в отличии от C#/Java), а возвращают исходный объект.
+
+-------
+
+Тип литерала объекта задается так:
+...
+let user: { name: string; age: number } = { name: "Vovan", age: 23 };
+user = { id: 123 };  -->  ошибка, нельзя присвоить объект с другими св-вами
+
+Стоит быть внимательным, когда тип литерала определяется неявно:
+...
+let user = { name: "Vovan", age: 23 };
+user = { id: 123 };  -->  ошибка, т.к. объект уже получил неявно другой тип
+
+Свойства объекта, как и параметры ф-ции, также могут быть необязательными. 
+А для проверки их наличия можно использовать оператор "in".
+...
+let user: { name: string; age?: number } = { name: "Vovan", age: 23 };
+user = { id: 123 };  -->  теперь ошибки не будет
+
+Ф-ции могут принимать объект в качестве параметра и могут возвращать объект. При этом,
+функциям можно передавать более широкий объект, чем тот что указан в их параметрах.
+...
+let msg = getMsg();  -->  msg имеет больше свойств, чем надо для print
+print(msg);
+
+function print(msg: { value: string, id: number }) {
+  console.log(msg.id + msg.value);
+}
+
+function getMsg(): { value: string, id: number, isPrimary: boolean } {
+  return { value: 'hello', id: 10, isPrimary: true };
+}
+
+Деструктуризация объекта выглядит так:
+function print({ name, age }: { name: string, age: number }) {}
+
+Псевдонимы объявляются с пом. ключевого слова type. Они используются когда нужно
+заменить какой-то длинный тип, на более короткий. Псевдонимы можно расширять через "&".
+...
+type Person = { name: string, age: number };
+type Employee = Person & { company: string };
+
+let vovan: Person = { name: 'Vovan', age: 23 };
+fn(vovan);
+
+let hovan: Employee = { name: 'Hovan', age: 25, company: 'Google' };
+fn(hovan)  -->  так тоже можно (подобно наследованию)
+
+function fn(person: Person) {}
+
+Массивы объявляются так:
+...
+let arr1: number[] = [1, 2, 3];  -->  хранит только один тип
+let arr2: Array<string> = ['hello', 'world'];  -->  альтернативный вариант
+
+Массивы только для чтения поддерживают большинство операций, что доступны и обычным
+массивам, за исключением тех, которые их изменяют (push, pop и т.п.):
+...
+const arr1: readonly string[] = ['a', 'b', 'c'];  -->  нельзя изменять эл-ты
+const arr2: ReadonlyArray<string> = ['a', 'b', 'c'];  -->  альтернативный вариант
+
+Деструктуризация массива:
+...
+let arr1: number[] = [1, 2, 3];
+let [a, b, c] = arr1;
+let [first, ...rest] = arr1;
+let [, , third] = arr1;
+
+Кортежи - это упорядоченные наборы фиксированной длины. Они напоминат массивы, 
+которые могут хранить элементы разных типов:
+...
+let user: [string, number] = ['Vovan', 23];
+user[0];  -->  'Vovan'
+user[1];  -->  23
+
+function fn(user: [string, number]) {}
+
+function fn(): [string, number] { 
+  return ['Hovan', 25]; 
+}
+
+Кортежи с неопределенным кол-вом элементов:
+...
+let entry1: [string, ...number[]] = ['hello', 1, 2, 3, 4, 5];
+let entry2: [...string[], boolean, number] = ['hello', 'world', true, 23];
+
+Необязательные эл-ты кортежа должны идти в самом конце:
+let user: [string, number, boolean?] = ['Hovan', 25];  -->  значение можно не указ.
+
+Кортежи также могут быть только для чтения:
+let user: readonly [string, number, boolean] = ['Hovan', 25, true];
+
+Деструктуризация у картежа такая же, как и у массива:
+...
+let user: [string, number, boolean] = ['Hovan', 25, true];
+let [name, age] = user;  -->  оставшиеся эл-ты будут игнорироваться
+
+Остаточные параметры ф-ции выглядят как некий набор одного типа:
+function fn(first: string, ...rest: number[]) {}  -->  fn('+1', 2, 3, 4, 5);
+
+Параметры можно задать через развертывание массива или кортежа. При этом коллекция 
+при инициализации обязательно должна быть помечена как "as const".
+...
+const arr: number[] = [1, 2, 3] as const;
+const tuple: [string, boolean] = ['hello', true] as const;
+
+fn1(...arr);
+fn2(...arr);
+fn3(...tuple);
+
+function fn1(...args: number[]) {}
+
+// Кол-во обязательных параметров и эл-тов коллекции должно совпадать
+function fn2(a: number, b: number, c: number) {}
+
+function fn3(a: string, b: boolean) {}
+
+Перечисление - это набор именованных констант. По умолчанию все константы имеют
+числовые значения, но можно задать и строковый тип данных.
+...
+enum Season { Winter, Spring, Summer, Autumn };
+let summer: Season = Season.Summer;  -->  выведет 2
+let winter: string = Season[0];  -->  выведет 'Winter', т.к. тип string
+
+Если у ф-ции в параметрах задано числовое перечисление, то при вызове ей можно
+передавать обычное число, но со строковыми перечислениями так сделать не получится.
+В тоже время, если параметр строка, то строковые перечисления подставлять можно.
+
+В остальном на них распространяются все теже правила, что и в C#/Java.
+
+----------------------------------
+
+ОБЪЕКТНО-ОРИЕНТИРОВАННОЕ ПРОГРАММИРОВАНИЕ
+
+Общая схема классов:
+...
+class User {
+  name: string;
+  age: number = 18;  -->  значение по умолчан.
+  readonly isAdmin: boolean = false;  -->  те же правила, как и в C#
+
+  constructor(name: string, isAdmin: boolean) {
+    this.name = name;
+    this.isAdmin = isAdmin;
+  } 
+
+  print() {
+    console.log(this.getInfo());
+  }
+
+  getInfo(): string {
+    return this.name + this.age;
+  }
+}
+
+class Admin extends User {
+  area: string;
+
+  constructor(name: string) {
+    super(name, true);
+    this.area = 'web-site';
+  }
+
+  print() {
+    super.print();  -->  вызов базового метода
+    console.log(${this.area} moderated by ${this.getInfo()});
+  }
+}
+
+Если базовый класс не имеет конструктора, а в производном классе он есть. То внутри
+конструктора производного класса все равно нужно вызывать super(), но без аргументов.
+https://learn.javascript.ru/class-inheritance
+...
+class Person {
+  name: string = 'Hovan';
+}
+
+class Employee extends Person {
+  constructor(company: string) {
+    super();  -->  вызов конструктора по умолчанию
+    this.company = company;
+  }
+}
+
+Абстрактный класс выглядит так:
+...
+abstract class Figure {
+  abstract name: string;  -->  абстрактное свойство
+  abstract getArea(): number;
+}
+
+class Rect extends Figure {
+  constructor(width: number, height: number) {
+    super();
+    this.width = width;
+    this.height = height;
+    this.name = 'rect';  -->  абстраткное св-во также должно быть задано
+  }
+
+  getArea(): number {
+    return this.width * this.height;
+  }
+}
+
+let figure: Figure = new Figure();  -->  ошибка, как и в C#
+let rect: Figure = new Rect(5, 2);  -->  делать нужно так!
+
+В TS всего 3 модификатора доступа: public, private и protected. Если св-во или ф-ция 
+не имеют модификатора доступа, тогда они расцениваются как public.
+...
+class User {
+  private readonly name: string;
+  protected age: number;
+
+  public print() {}
+}
+
+Свойства класса можно определять прямо через параметры конструктора, если к 
+параметрам добавить модификатор доступа.
+...
+class Rect extends Figure {
+  // Создадутся два свойства: width и height, которые получат значения 
+  // из одноименных параметров, при вызове конструктора
+
+  constructor(public width: number, private readonly height: number) {
+    super();
+  }
+}
+
+Геттеры и сеттеры (аксессоры/методы доступа), а также статические свойства 
+и методы, задаются также, как и в JS.
+
+Статические члены класса могут наследоваться:
+...
+class Person {
+  static age: number = 65;
+}
+
+class Employee extends Person {}
+Employee.age;  -->  можно обращаться через имя производного класса
+
+-------
+
+Интерфейс - это именованный набор сигнатур методов (и свойств).
+...
+interface User {
+  name: string;
+  age: number;
+
+  isAdmin?: boolean;    -->  необязательное св-во (можно не реализовывать)
+  readonly id: number;  -->  св-во только для чтения
+
+  getInfo(): string;
+}
+
+let user: User = {
+  name: 'Hovan',
+  age: 23,
+  id: 1,  -->  после инициализац. изменять нельзя
+
+  getInfo(): string {
+    return this.name + this.age + this.id;
+  }
+};
+
+В TS можно расширять интерфейсы. Чтобы расширить имеющийся интерфейс, нужно объявить
+другой интерфейс с таким же именем, но с новыми свойствами или методами.
+...
+interface User {
+  name: string;
+  age: number;
+}
+
+interface User {
+  id: number;
+}
+
+let user: User = {
+  name: 'Hovan',
+  age: 23,
+  id: 1,
+};
+
+Классы реализуют интерфейсы с пом. ключевого слова "implements". 
+Интерфейсы, как и классы, могут наследоваться.
+...
+interface Movable {
+  move(): void;
+}
+
+interface Car extends Movable {
+  fill(): void;
+}
+
+class CarImpl implements Car {
+  move(): void {}
+  fill(): void {}
+}
+
+let car: Car = new CarImpl();
+
+Интерфейс функции - он реализуется объектом, который представляет ф-цию:
+...
+interface MyFn {
+  (name: string, age: number): void;  -->  сигнатура
+}
+
+let fn: MyFn = function(name: string, age: number) {};
+
+Интерфейсы массивов описывают объекты, к которым можно обращаться по индексу:
+...
+interface MyArray {
+  [index: number]: string;  -->  index может быть любым типом
+}
+
+let arr: MyArray = ['hello', 'world'];
+
+Гибридный интерфейс сочетает в себе сразу интерфейс ф-ции и интерфейс объекта.
+Сигнатура ф-ции, определяемая в таком интерфейсе, выступает как конструктор объекта.
+...
+interface User {
+  (name: string, age: number): void;
+  isAdming: boolean;
+  print(): void;
+}
+
+function userFn(): User {
+  let user = <User>function(name: string, age: number): void {}
+  user.isAdmin = false;
+  user.print = function() {};
+  return user;
+}
+
+Восходящее преобразование - это преобразование от более конкретного типа, 
+к более общему: let user: User = new Admin('Hovan', 18);
+
+Нисходящее преобразование - это наоборот, преобразование от более общего типа, 
+к более конркетному: let user: Admin = <Admin>user;
+
+Проверить, принадлежит ли объект определенному типу, можно через instanceOf:
+if (user instanceOf Admin) {}
+
+Оператор instanceOf нельзя использовать с интерфейсами.
+
+-------
+
+В TS есть одна особенность, связанная с интерфейсами. Если класс не реализует интерфейс
+но по набору сигнатур совпадает с ним, то его объект всё равно можно присвоить ему.
+
+Помимо этого, класс может иметь дополнительные члены, которых нет в интерфейсе, 
+а объектный литерал нет. Он ограничен только тем, что имеет интерфейс.
+
+...
+interface MyUser {
+  name: string;
+}
+
+class User {
+  name: string = 'Vovan';
+  print() {}
+}
+
+let user1: MyUser = new User();  -->  так можно
+let user2: MyUser = { name: 'Hovan' };  -->  и так можно
+let user3: MyUser = { name: 'Ron', age: 19 };  -->  а так нельзя; сигнатура другая
+let user4: MyUser = { name: 'Ron', age: 19 } as MyUser;  -->  надо сделать так
+
+-------
+
+Обобщения определяются также, как в C#. Они необходимы, когда на этапе написания кода
+неизвестно, какой тип будет использоваться в итоге.
+...
+function fn<T>(id: T): T {
+  return id;
+}
+
+let res1 = fn<number>(5);
+let res2 = fn<string>('hello');
+
+Пример обобщенного массива:
+...
+function fn<T>(args: Array<T>): string {
+  return args.join('');
+}
+
+fn<number>([1, 2, 3]);  -->  '123'
+
+Пример обобщенного класса и интерфейса:
+...
+interface User<T> {
+  getId(): T;
+}
+
+class UserImpl<T> implements User<T> {
+  constructor(private id: T) {}
+  getId(): T { return this.id; }
+}
+
+let user = new UserImpl<string>('#da21');
+
+Ограничения обобщений (constraints) задаются как в Java, через extends: <T extends Тип>
+Ограничения необходимы, чтобы тип T знал о том, что он пренадлежит к чему-то конкретн;
+что у него есть какие-то свойства/методы и он может к ним обращаться (здесь extends
+означает не наследование, а приведение к типу [УТОЧНИТЬ]).
+...
+function compare<T>(a: T, b: T) : boolean {
+  return a.name === b.name;  -->  так сделать не получится, т.к. T 
+}     это просто абстрактный тип, котор. ничего не знает про св-во name
+
+function compare<T extends {name: string}>(a: T, b: T): boolean {
+  return a.name === b.name;  -->  теперь T ограничен типом {name: string}
+}     это позволяет ему знать, что он имеет св-во name
+
+Такую ф-цию можно обобщать любым типом, главное чтобы тип соответсвовал ограничению
+(включал подходящие св-ва/методы):
+...
+class User {
+  constructor(public name: string, public age: number) {}
+}
+
+let user1 = new User('Vovan', 18);
+let user2 = new User('Hovan', 23);
+
+compare<User>(user1, user2);
+compare<{name: string}>({name: 'Vovan'}, {name: 'Hovan'});
+
+Чтобы создать объект типа T через new, нужно указать, что T имеет конструктор:
+...
+function fn<T>(t: { new(): T; }) { 
+  let _t = new t();
+}
+
+В TS, как и в JS, можно создавать миксины. Миксины позволяют копировать ф-ционал разных
+классов, через прототипы, тем самым создавая подобие множественного наследования.
+Как это сделать, разработчик решает сам. Примеры можно найти в интернете.
+
+----------------------------------
+
+МОДУЛИ И ПРОСТРАНСТВА ИМЕН
+
+Пространства имен предназначены для организации больших программ. Они объявляются 
+с помощью ключевого слова namespace. Типы/объекты/переменные внутри них должны быть
+определены с export. Иначе они будут не видны извне.
+...
+namespace Users {
+  export class Admin {}
+}
+let user = new Users.Admin();
+
+Чтобы подключить пространство, используется директива: /// <reference path="" />
+...
+/// <reference path="users.ts" />  -->  подобно using namespace; из C#
+let user = new Users.Admin();     используется, когда ns определено в другом файле
+
+Пространства имен могут быть вложенными:
+...
+namespace Common {
+  export namespace Users {
+    export class Admin {}
+  }
+}
+let user = new Common.Users.Admin();
+
+Длинным пространствам имен можно назначать псевдонимы. Делается это через import:
+...
+import admin = Common.Users.Admin;
+let user = new admin();
+
+Более современным способом разграничить файлы является модули. Функционал модулей в TS
+такой же, как и в JS (любой файл содержащий import/export - это модуль).
+
+Компиляция модуля выглядит так:
+...
+tsc --module commonjs main.ts  -->  для CommonJS
+tsc --module esnext main.ts  -->  для ESNext
+
+Браузер не может загружать скрипты с тегом type="module" локально, с копьютера. Такие
+скрипты загружаются через AJAX с сервера. Посему, чтобы все работало, страницу нужно
+открывать через какой-нибудь инструмент Gulp (serve watcher) и т.п.
+
+----------------------------------
+
+ЗАГОЛОВОЧНЫЕ ФАЙЛЫ
+
+Для установки связи с внешними js-скриптами используются декларативные заголовочные
+файлы. Они имеют расширение .d.ts и хранят в себе сигнатуры различных ф-ций, классов,
+объектов и т.п. (напоминают заголовочные файлы C/C++)
+
+Допустим есть js-библиотека, с глобальной переменной message. Чтобы получить к ней
+доступ в TS, необходимо создать файл c произвольным названием, например my-file.d.ts.
+В этом файле с помощью declare проинформировать TS о наличии переменной message.
+...
+declare let message: string;
+
+Теперь при компиляции, если выбрать конкретный файл, например: tsc app.ts, 
+то my-file.d.ts не подтянется автоматически. Для этого в app.ts нужно явно указать
+путь, с помощью всё той же директивы: /// <reference path="" />. 
+
+Если выполнять коспиляцию на основе конфига tsconfig.json (т.е. просто tsc), 
+то директиву указывать не нужно.
+
+Функции подключатся так:
+...
+function sum(a, b) {
+  return a + b;
+}
+declare function sum(a: number, b: number): number;
+
+Подключение объектов и массивов:
+...
+const user = { 
+  name: 'Hovan', 
+  age: 32,
+  print() {}
+};
+
+var points = [
+  { x: 10, y: 32 },
+  { x: 11, y: 56 },
+];
+
+declare const user: { name: string, age: number; print: () => void };
+
+interface Point { x: number, y:number }
+declare var points: Point[];
+
+При подключении JS-классов нужно указывать все его поля, методы и конструктор.
+...
+class User {
+  constructor(name, age) {
+    this.name = name;
+    this.age = age;
+  }
+
+  print() {}
+}
+
+declare class User {
+  name: string;
+  age: number;
+  constructor(name: string, age: number);
+  print(): void;
+}
+
+Для больших библиотек (jQuery и т.д.) существуют уже готовые наборы заголов. файлов.
+Они доступны в репозитории: https://github.com/DefinitelyTyped/DefinitelyTyped.
+
+Установить их можно через npm, например: npm install --save-dev @types/jquery.
+После установки необходимо указать компилятору каталог заголовочных файлов. 
+Для этого нужно задать параметр typeRoots в файле tsconfig.json.
+...
+{
+  "compilerOptions": {
+    "typeRoots": ["node_modules/@types"]  -->  заголов. файлы всех библиотек
+  }
+}
+
+----------------------------------
+
+ДЕКОРАТОРЫ
+
+Это функционал, позволяющий задавать коду методанные. С помощью методанных можно доп.
+манипулировать поведением различных сущностей (классов/методов/свойств).
+Декораторы похожи на атрибуты из С# или на аннотации из Java.
+
+Декораторы являются инструментом декларативного программирования. Декларативное
+программирование отличается от императивного тем, что задает только правила того, 
+что нужно получить в итоге, а способ получения скрыт системой (например язык SQL).
+
+Чтобы включить декораторы, нужно в tsconfig.json указать опцию experimentalDecorators.
+Либо через параметры: tsc main.ts -t ES5 --experimentalDecorators
+...
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "experimentalDecorators": true
+  }
+}
+
+Декоратор класса позволяет манипулировать его конструктором. 
+Он представляет из себя ф-цию, с одним параметром - конструктором класса.
+...
+function myDecorator(ctor: Function) {
+  Object.seal(ctor);
+  Object.seal(ctor.prototype);  
+}
+
+@myDecorator  -->  запрет на расширение прототипа
+class User {}      (нельзя добавлять новые свойства и т.п.)
+
+Пример полной замены конструктора через декоратор (замена конструктора приводит 
+к замене всех свойств и методов):
+...
+function myDecorator<T extends Function>(ctor: T): T {
+  let newCtor: Function = function() {
+    this.name = 'Hovan';
+    this.age = 31;
+    this.print = function(): void {
+      console.log(`${this.name} ${this.age}`);
+    }
+  }
+
+  return <T>newCtor;
+}
+
+@myDecorator
+class User {
+  print(): void {
+    console.log('hello');
+  }
+}
+
+let user = new User();
+user.print();  -->  'Hovan 31'
+
+Декоратор метода - это ф-ция с тремя пар-рами. Первый параметр - конструктор класса,
+если метод статический или прототип класса, если метод нестатический; второй - название
+метода, третий - объект интерфейса PropertyDescriptor.
+
+PropertyDescriptor позволяет манипулировать декорируемым методов.
+...
+function myDecorator(target: Object, propertyKey: string, desc: PropertyDescriptor) {
+  desc.writable = false;  -->  запретить перезапись метода
+}
+
+class User {
+  @myDecorator
+  print(): void {
+    console.log('hello');
+  }
+}
+
+let user = new User();
+user.print = () => 'world';
+user.print();  -->  'hello'
+
+Декоратор может иметь пользовательские параметры. В этом случае ф-ция из 3х параметров,
+рассмотренная выше, должна возвращаться как результат.
+...
+function myDecorator(value: boolean) {
+  return (target: Object, propertyKey: string, desc: PropertyDescriptor) => {
+    desc.writable = value;
+  };
+}
+
+class User {
+  @myDecorator(true)
+  print(): void {}
+}
+
+Пример создания прокси с помощью декоратора метода:
+...
+function proxy(target: Object, propertyKey: string, desc: PropertyDescriptor) {
+  let originalMethod = desc.value;
+  desc.value = function(...args: number[]) {
+    console.log('before');
+    let result = originalMethod.apply(this, args);
+    console.log('after');
+    return result;
+  }
+}
+
+class Operation {
+  @proxy
+  sum(a: number, b: number): number {
+    return a + b;
+  }
+}
+
+Декоратор параметра - ф-ция с тремя пар-рами, похожими на те, что в декораторе метода,
+кроме последнего. Тот представляет собой индекс декорируемого параметра.
+...
+function myDecorator(target: any, key: string, index: number) {
+  target['decorParam'] = index;
+}
+
+class Messenger {
+  print(@myDecorator msg: string) {
+    console.log(this.decorParam);
+  }
+}
+
+Декоратор свойства - ф-ция с двумя пар-рами. Первый такой же, как и в декораторе
+метода, а второй - это название свойства.
+...
+function accessor(target: Object, propertyKey: string) {
+  let value: string;
+  Object.defineProperty(target, propertyKey, {
+    get: () => value,
+    set: (newValue: string) => value = newValue, 
+  });
+}
+
+class User {
+  @accessor
+  name: string;
+}
+
+Декоратор аксессора - ф-ция, аналогичная декоратору метода. Такой декоратор достаточно
+применить либо к геттеру, либо к сеттеру. В любом случае он применится сразу к обоим.
+...
+function validator(target: any, key: string, desc: PropertyDescriptor) {
+  let originalSet = desc.set;
+  desc.set = (value: string) => {
+    if (value === 'admin') {
+      throw new Error('Invalid name');
+    }
+    originalSet.call(this, value);
+  }
+}
+
+class User {
+  public get name(): string {}
+
+  @validator
+  public set name(value: string) {}
+}
+
+----------------------------------
+
+РАЗНОЕ
+
+В TS все типы данных являются Nullable (даже примитивные). Это означает что каждому 
+типу можно задать null либо undefined. Кроме того, undefined является также значением 
+по умолчанию для всех типов данных (как и в JS).
+
+Отличие между псевдонимами типов и интерфейсами заключается в том, что первые
+используются как некий алиас, комбинирующий/сокращающий названия уже имеющихся типов.
+Тогда как вторые применяются для определения новых типов.
+
+Тип переменной или возвращаемого значения ф-ции можно не указывать, 
+если он явно виден из правой части выражения.
+...
+function fn() {
+  let value = 23;
+  return value as boolean;
+}
+
+-------
+
+В TS можно делать перегрузку ф-ций/методов и конструкторов. Выполняется это так:
+...
+function fn(num: number);                -->  сигнатура перегузки с 1 пар-ром
+function fn(str: string, val: boolean);  -->  сигнатура перегузки с 2 пар-рами 
+function fn(numOrStr: number | string, val?: boolean) {  -->  сигнатура реализации
+  if (numOrStr instanceof number) {
+    fn(numOrStr.toString(), true);  -->  если попали сюда, значит пользователь 
+    return;                              выбрал первую сигнатуру
+  }
+
+  console.log(numOrStr, val);
+}
+
+Сигнатура реализации не видна из вне. Она необходима для вызова правильной перегрузки,
+в зависимости от проверки параметров. Параметры здесь объеденённые.
+
+В качестве альтернативы можно просто объявить одну сигнатуру реализации, а сигнатуры
+перегрузки указать в интерфейсе. Такой вариант подойдет для объектных литералов.
+...
+interface MyObj {
+  fn(num: number): void;
+  fn(str: string, val: boolean): void;
+}
+
+const obj: MyObj = {
+  fn(numOrStr: number | string, val?: boolean) {}
+};
+
+С перегрузкой конструкторов все сложнее, т.к. TS не позволяет вызывать один конструктор
+из другого. Здесь вместо перегрузок лучше использовать фабричные методы.
+
+-------
+
+В TS, чтобы привести один тип к другому, не обязательно использовать операторы
+приведения, а достаточно просто выполнить проверку типа, например:
+...
+if (a instanceof B) {
+  // здесь "a" автоматически станет B
+}
+
+if ('prop' in a) {
+  // если до проверки в "а" не было этого свойства,  
+  // по теперь оно появится, но будет с типом any
+}
+
+Защитники типов (Type Guards). Они помогают преобразовывать типы. 
+По сути - это просто красивые проверки типов.
+
+Например есть два класса: A и BaseA. Класс A также реализует интерфейс B. Если все
+объекты А будут типа BaseA, то как узнать какой из них реализует ещё и интерфейс? 
+
+Если привести BaseA к B, то TS начнет ругаться, т.к. BaseA явно не реализует B.
+Оператор instanceof тоже не получится использовать, т.к. он не работает с
+интерфейсами. В итоге самым элегантным решением остается type guard.
+
+Выглядит он как некая ф-ция, принимающая на вход параметр комбинированного типа 
+и далее определяющая, к чему конкертно он пренадлежит:
+...
+function isB(a: BaseA | B): a is B {
+  return (a as B).prop !== undefined;  -->  св-во "prop" задано только в интерфейсе B;
+}                                           в итоге выполняем утиную типизацию
+
+const a: BaseA = new A();
+isB(a) && a.prop;  -->  после проверки у "a" появляется новое св-во
+
+-------
+
+Чтобы создать генератор, нужно объявить ф-цию, котор. возвращает Generator<T, K?, V?>
+T - это то, что передает yield (во внешний код), K - то, что передает return, 
+а V - то, что yield получает (из внешнего кода).
+...
+function *fn(): Generator<number, string, boolean> {
+  let a: boolean = yield 1;
+  let b: boolean = yield 2;
+  return 'Done';
+}
+
+let generator = fn();
+
+let res1 = generator.next();
+res1.value;  -->  1          
+
+let res2 = generator.next(fasle);
+res2.value;  -->  2
+
+let res3 = generator.next(true);
+res3.value;  -->  'Done'
+
+Каждый вызов метода next заставляет генератор получать данные из текущего yield 
+и одновременно переходить к следующему yield (передавая его данные). Yield всегда
+начинает с передачи данных, поэтому первый next идет без аргументов.
+
+      (2)      (1)
+false <- yield -> 1
+
+      (3)      (2)
+ true <- yield -> 2
+
+               (3)
+         return -> 'Done'
+
+-------
+
+Когда использовать литерал объекта, а когда класс?
+
+Класс необходим тогда, когда объект должен создаваться много раз, а также, когда
+необходимо наследование либо инициализация первоначальных данных.
+
+Если класс использует ф-ционал, косвенно связанные со своим назначением, тогда такой 
+ф-ционал нужно вынести в отдельную ф-цию.
+
+Такая ф-ция может быть как локальной по отношении к классу (размещаться с ним в одном
+модуле), так и глобальной, если используется в других местах.
+
+Если таких ф-ций много, либо ф-ция имеет набор вспомогательных ф-ций, то их можно
+разместить в объектном литерале (особенно, когда она опирается на какое-то состояние).
+
+Объектный литерал также может использоваться, когда нужен синглтон не требующий
+наследования или реализации интерфейсов. В TS вместо литерала подойдет паттер "модуль".
+
+// Если бы вместо ф-ции создавался сразу объект, с методом init. То требовалось бы 
+// указывать также и свойства. Причем тип таких свойств (по требованию компилятора) 
+// пришлось бы комбинировать с undefined, а при вызове - делать проверки.
+
+function createObj(initData: any) {
+  const getMsg = (): string => {
+    return initData.msg;
+  };
+
+  const print = (): void => {
+    console.log(getMsg());
+  };
+
+  return { getMsg, print };
+}
+
+-------
+
+Синтаксис кода при включении опции noImplicitThis.
+
+Что такое keyof и как он работает с обобщениями.
+
+Разница между: const t = typeof obj и type t = typeof obj.
+Первый вариант можно использовать так typeof(obj), а второй - нет.
+
+Литеральные типы в TS.
+
+В JS и TS есть очень удобная возможность создавать декораторы, 
+через расширение литерала объекта.
+
+Значение по умолчанию для обобщений: function fn<T = any>(T arg) { }
+А также что означает такая запись: function fn<T>(arg MyTypes[T]) { }
+
+Что такое индексные сигнатуры? interface A { [key: string]: boolean }
+(интерфейс А тоже самое, что и тип Record<string, boolean>)
+
+Подробнее, зачем нужен тип never: https://habr.com/ru/articles/471026/
+
