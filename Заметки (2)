@@ -74,3 +74,8 @@ disks.map(disk => disk.id);
 MyClass1.MySubClass.Inner value = getValue();
 var value = getValue();  -->  можно написать и так
 
+-----------------------------------
+
+Web Api лучше оформлять как любой другой Api:
+api.post('/products', data, cb)  -->  shop.buyProducts(products, cb).
+

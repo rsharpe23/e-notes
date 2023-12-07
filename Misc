@@ -1,3 +1,0 @@
-Web Api лучше оформлять как любой другой Api:
-api.post('/products', data, cb)  -->  shop.buyProducts(products, cb).
-
