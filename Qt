@@ -766,7 +766,7 @@ btn.show();
 Переключатели не могут использоваться по отдельности и должны быть сгруппированы.
 
 Группируются они с пом. класса QGroupBox. Если кол-во переключателей больше пяти, 
-то лучше использовать выпадающий список QComboxBox.
+то лучше использовать выпадающий список QComboBox.
 ...
 QGroupBox gbx("&Colors");
 
@@ -796,7 +796,7 @@ gbx.show();
 используется редко (т.е. вместо QScrollBar лучше использовать виджеты, 
 производные от QAbstractScrollArea).
 
-Большая часть виджетов ввода поддерживает технологию Drag&Drop.
+Большая часть виджетов ввода поддерживает операцию Drag&Drop.
 
 Виджет QLineEdit представляет собой однострочное текстовое поле. А для ввода
 многострочного текста, используется QTextEdit.
@@ -886,6 +886,77 @@ public:
 QLineEdit* txt = QLineEdit();
 NameValidator* validator = new NameValidator(txt);
 txt->setValidator(validator);
+
+Элементы выбора представлены виджетами: QListWidget, QTreeWidget, QTableWidget,
+QTabWidget, QComboBox и QToolBox. Их item'ы, помимо текста и картинок, могут быть
+также и виджетами. Но это снижает быстродействие.
+
+QListWidget - виджет списка. Элементы списка представлены классом QListWidgetItem.
+Элементы-виджеты задаются такие с помощью метода setItemWidget().
+
+Пример создания списка:
+...
+QListWidget list;
+QListWidgetItem* item = 0;
+
+foreach(QString str, strArr) {
+    item = new QListWidgetItem(str, &list);
+    item->setIcon(QPixmap(":/" + str + ".jpg"));
+}
+
+list.resize(125, 175);
+list.show();
+
+Узнать, какой элемент выбрал пользователь, можно с пом. метода currentItem().
+Если выбранных элементов несколько, то надо использовать selectedItems(). Режим
+множествен. выделения задается: setSelectionMode(QAbstractItemView::MultiSelection);
+
+C пом. метода setFlags(Qt::ItemIsEditable) можно предоставить пользователю 
+возможность редактирования текста элемента.
+
+Также, список можно перевести в режим пиктограмм (когда эл-ты в виде значков).
+Это позволит проводить операцию перетаскивания Drag&Drop.
+...
+list.setSelectionMode(QAbstractItemView::MultiSelection);
+list.setViewMode(QListView::IconMode);  -->  задается режим пиктограмм
+
+foreach(QString str, strArr) {
+    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled);
+}
+
+QTreeWidget - виджет древовидного списка. Поддерживает возможность выбора одного 
+или нескольких значений, а также Drag&Drop.
+
+Элементы будут с флажками, если задать Qt::ItemIsUserCheckable.
+...
+QTreeWidgetItem* item = new QTreeWidgetItem(treeWgt);
+item->setFlags(Qt::ItemIsUserCheckable);
+item->setCheckState(0, Qt::Checked);
+
+Узнать состояние флажка элемента, можно с пом. checkState(номер_столбца):
+if (item->checkState(0) == Qt::Checked) { }
+
+Элементы QTreeWidget и могут иметь несколько столбоц с данными. Добавить столбцы 
+можно с пом. метода addChildren(). Метод setExpanded() разворачивает эл-нт.
+
+С помощью итератора QTreeWidgetIterator можно пройтись по элементам списка, 
+а чтобы пройтись только по выделенным, нужно передать в конструктор флаг Selected.
+
+Метод sortItems() позволяет сортировать эл-ты у обоих списков. Для сортировки по 
+датам, нужно создать новый виджет эл-та, и перезаписать в нём operator<().
+
+QTableWidget - виджет таблицы. Элементы таблицы представлены через QTableWidgetItem.
+Задать элемент в таблице можно с пом. метода setItem(rowNum, colNum).
+
+QComboBox - виджет выпадающего списка. Он предоставляет возможность выбора только
+одного элемента. По ф-циональному назначению совпадает с QListWidget.
+
+Вызов метода setDuplicatesEnabled(false), исключает попадание повторяющихся эл-тов.
+Чтобы узнать текущий элемент, используется метод currentIndex(). Если вызвать
+setEditable(true), то пользователь сам сможет добавлять элементы в список.
+
+QTabWidget - виджет вкладок (по горизонтали). 
+QToolBox - виджет панели инстументов (вертикальные вкладки).
 
 ---------------------------
 
