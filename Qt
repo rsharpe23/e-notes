@@ -1048,7 +1048,9 @@ listView.show();
 Проверить данные по заданным координатам можно с помощью метода isValid().
 ...
 QModelIndex index = tableModel->index(2, 5, QModelIndex());
-QVariant value = tableModel->data(index);
+if (index->isValid()) {
+    QVariant value = tableModel->data(index);
+}
 
 Чтобы правильно отображать данные, представления используют роли.
 * DisplayRole - текст для показа;
@@ -1067,8 +1069,8 @@ QVariant value = tableModel->data(index);
 QStringList list;
 list << "Linux" << "Windows" << "MacOS";
 
-QStandartItemModel model(list.size(), 1);  -->  эта модель, по всей видимости, 
-                                                также представляет собой таблицу
+QStandartItemModel model(list.size(), 1);  -->  индексы есть не только у таблиц
+
 for (int i = 0; i < model.rowCount(); i++) {
     QModelIndex index = model.index(i, 0);
     QString str = list.at(i);
@@ -1082,7 +1084,55 @@ listView.setViewMode(QListView::IconMode);
 listView.setModel(&model);
 listView.show();
 
-Создание собственных моделей данных...
+Виджеты: QListWidget, QTreeWidget и QTableWidget построены на основе элементно
+ориентированного подхода, т.е. они унаследованы от представлений QListView 
+и т.д., и имеют внутренние модели данных.
+
+При этом, их модели можно разделять с отдельными представлениями:
+...
+QListWidget wgt;
+wgt.setWindowTitle("List Widget");
+wgt.show();
+
+QListView view;
+view.setModel(wgt.model());  -->  отобразит данные из виджета по своему
+view.setWindowTitle("List View");
+view.show();
+
+Все цвета виджета хранятся в цветовой палитре. Чтобы получить доступ к объекту 
+палитры, используется метод palette(), класса QWidget. 
+
+Объект QPalette имеет 3 группы, которые отвечают за 3 состояния виджета: активное,
+неактивное и недоступное. Каждая группа состоит из цветовых ролей, а каждая роль 
+имеет кисть QBrush (заливка по паттерну), и цвет QColor (сплошная заливка). 
+
+Цветовые роли (полный список на стр. 218):
+* Text - цвет текста;
+* ButtonText - цвет текста на кнопках;
+* Highlight - цвет фона, когда элемент активен (выделен);
+* HighlightText - цвет текста, когда элемент активен;
+* Window - основной цвет фона;
+* Button - цвет кнопки;
+* Link - цвет гиперссылки.
+
+Пример переопределения цветов виджета:
+...
+QSpinBox spinBox;
+
+QPalette palette = spinBox.palette();
+// Кнопки будут залиты красными точками и иметь синий текст
+palette.setBrush(QPalette::Button, QBrush(Qt::red, Qt::Dense3Pattern));
+palette.setColor(QPalette::ButtonText, Qt::blue);
+
+spinBox.setPalette(palette);
+spinBox.resize(150, 74);
+spinBox.show();
+
+Чтобы переопределить цвета для всех виджетов (глобально), нужно использзовать
+статический метод QApplication::setPalette().
+
+При создании объекта палитры, можно указать только 2 цвета: цвет для кнопок и основной
+цвет. А все остальные цвета будут вычеслены автоматически, на основе них.
 
 ---------------------------
 
