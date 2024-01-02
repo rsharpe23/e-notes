@@ -1571,6 +1571,8 @@ textItem->setTransform(QTransform().shear(-0.5, 0.0), true);
 В сцену, помимо элементов, можно помещать и обычные виджеты. Это позволит проводить 
 с ними различные геометрические преоразования, определять столкновения и т.д.
 
+Работа с OpenGL...
+
 ---------------------------
 
 МУЛЬТИМЕДИА
@@ -1627,9 +1629,41 @@ label.setGraphicsEffect(new GraphicsBlurEffect());
 Если нужен свой эффект, то необходимо унаследоваться от QGraphicsEffect, 
 и переопределить метод draw().
 
-Графические эффекты хорошо сочетаются с анимациями.
+Графические эффекты хорошо сочетаются с анимациями. 
 
-Анимация...
+Анимации реализуются с пом. класса QMovie. Он также может возвращать отдельные кадры 
+в объектах QPixmap и QImage. Анимацию проще всего показывать через виджет QLabel.
+У него есть специальный метод setMovie(), принимающий объект анимации.
+
+Для tween-анимаций используется подход кривых, основанный на мат. функциях. 
+Базовым классом для tween-анимаций является QAbstractAnimation.
+...
+QGraphicsColorizeEffect effect;
+
+QPropertyAnimation anim(&effect, "color");  -->  наследник QAbstractAnimation
+anim.setStartValue(QColor(Qt::gray));
+anim.serKeyValue(0.25f, QColor(Qt::green));
+anim.setKeyValue(0.75f, QColor(Qt::blue));
+anim.setEndValue(QColor(Qt::black));
+anim.setLoopCount(-1);  -->  кол-во проигрований (-1 это бесконечное)
+anim.setDuration(3000);
+anim.setEasingCurve(QEasingCurve::OutBounce);
+anim.start();
+
+QLabel label;
+label.setPixmap(QPixmap(":/logo.png"));
+label.setGraphicsEffect(&effect);
+label.show();
+
+Анимации могут группироваться и работать через стейт-машину. За группировку отвечает QAnimationGroup. Такие анимации работают как последовательно, так и параллельно.
+...
+QParallelAnimationGroup aGroup;
+aGroup.addAnimation(anim1);
+aGroup.addAnimation(anim2);
+aGroup.start();
+
+QStateMachine - это класс стейт-машины. QState - это класс состояния.
+Пример работы со стейт-машиной на стр. 342. Таблица аним. кривых на стр. 337.
 
 ---------------------------
 
