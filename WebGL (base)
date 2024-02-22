@@ -22,9 +22,9 @@ gl.clear(gl.COLOR_BUFFER_BIT);
 Шейдерная программа состоит из 2х шейдеров: вершинного и фрагментного.
 ...
 <script id="shader-vs" type="x-shader/x-vertex">
-  attribute vec3 a_vertexPos;
+  attribute vec3 a_VertPos;
   void main() {
-    gl_Position = vec4(a_vertexPos, 1.0);
+    gl_Position = vec4(a_VertPos, 1.0);
   }
 </script>
 
@@ -100,12 +100,12 @@ gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array([0, 2, 1]), gl.STATIC_DRA
 
 Установка указателя на чтение из буфера (этот указатель называется атрибутом):
 ...
-const vertexPosAttrib = gl.getAttribLocation(program, 'a_vertexPos');
-gl.enableVertexAttribArray(vertexPosAttrib);
-gl.vertexAttribPointer(vertexPosAttrib, 3, gl.FLOAT, false, 0, 0);
+const vertPosAttr = gl.getAttribLocation(program, 'a_VertPos');
+gl.enableVertexAttribArray(vertPosAttr);
+gl.vertexAttribPointer(vertPosAttr, 3, gl.FLOAT, false, 0, 0);
 
 Метод getAttribLocation() как бы связывает атрибут между шейдером и WebGL.
-С помощью него мы получаем ссылку на a_vertexPos и присваиваем её в vertexPosAttrib.
+С помощью него мы получаем ссылку на a_VertPos и присваиваем её в vertPosAttr.
 
 Метод enableVertexAttribArray() включает атрибут. Обычно, вызывается перед установкой.
 
@@ -120,10 +120,10 @@ gl.vertexAttribPointer(vertexPosAttrib, 3, gl.FLOAT, false, 0, 0);
 * offset - позиция с кот. начинается обработка; 0 это начальная позиция;
 
 Поскольку параметр size имеет значение 3, то при каждом вызове вершинного шейдера
-атрибут a_vertexPos будет получать по 3 элемента из буфера. Сначала это будут эл-ты
+атрибут a_VertPos будет получать по 3 элемента из буфера. Сначала это будут элементы
 (-0.5, -0.5, 0.0), затем (0.0, 0.5, 0.0) (указатель сдвинется на size * sizeof(type)).
 
-Если a_vertexPos имеет тип, отличный от vec3, например vec4, то из буфера установятся
+Если a_VertPos имеет тип, отличный от vec3, например vec4, то из буфера установятся
 только первые 3 компоненты: x, y, z, а компонента w примет значение по умолчанию.
 
 Перед отрисовкой примитивов нужно установить viewport (область отрисовки):
@@ -230,16 +230,16 @@ gl.viewport(offsetX, offsetY, width, height);
 
 С пом. структур можно также создавать и составные типы.
 
-В GLSL переменные обычно объявляются с квалификаторами. Их список:
-* attribute - атрибут вершины; через него в шейдер передаются данные буфера;
-* const - константа, как и в других языках;
-* uniform - константа со значением для всего примитива;
-* varying - переменная, которая задается в вершинном шейдере и затем передается 
-  во фрагментный шейдер, где может быть использована;
+В GLSL переменные обычно объявляются с квалификаторами:
+* attribute - значение для отдельной вершини (из буфера вершин);
+* const - обычная константа;
+* uniform - значение для всех вершин;
+* varying - значение, кот. задается в вершинном шейдере и затем передается 
+  во фрагментный шейдер, где может быть использовано;
 
-Атрибуты передают данные для вершин, а unifirm-переменные - для примитивов.
-Например, через unifirm-переменные можно задавать матрицы, т.к. они (матрицы) 
-должны быть неизменными для всех вершин. 
+Атрибуты задают данные для вершин, а unifirm-переменные - для объектов.
+Например, через unifirm-переменные можно задавать матрицы, т.к. они должны иметь 
+одни и те же значения для всех вершин. 
 
 Для переменных типа float можно задавать точность:
 * highp - число с плавающей точкой будет иметь максимальную точность;
@@ -324,7 +324,7 @@ const mvMatrix = mat4.create();
 mat4.perspective(pMatrix, 1.04, canvas.width / canvas.height, 0.1, 100.0);
 mat4.identity(mvMatrix);
 
-mat4.translate(mvMatrix, mvMatrix, [0, 0, -2.0]);
+mat4.translate(mvMatrix, mvMatrix, [0.0, 0.0, -2.0]);
 mat4.rotate(mvMatrix, mvMatrix, 1.7, [0, 1, 0]);
 
 const u_PMatrix = gl.getUniformLocation(program, 'u_PMatrix');
@@ -342,7 +342,7 @@ gl.uniformMatrix4fv(u_MVMatrix, false, mvMatrix);
 * near - самая ближняя точка (видимой области);
 * far - самая дальняя точка; 
 
-Метод identity() задаёт единичную матрицу (как бы сбрасывает значение перед трансформ).
+Метод identity() задаёт единичную матрицу (как бы сбрасывает её перед трансформацией).
 
 Метод translate() задаёт перемещение. Первый параметр принимает выходную матрицу, а
 второй - входную. Но так как преобразуется одна матрица, то значения совпадают.
