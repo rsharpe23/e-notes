@@ -655,42 +655,7 @@ gl_FragColor = vec4(iColor, 1.0) * texture2D(u_Sampler, v_TexCoord)
 
 РАБОТА С КАМЕРОЙ
 
-Метод lookAt() принимает 4 параметра: 
-1) матрица вида (выходной);
-2) позиция камеры;
-3) позиция взгляда;
-4) вектор вверх;
-
-Вектор взгляда вычисляется путем сложения вектора позиции с вектором направления:
-...
-const viewMat = mat4.create();
-const eyePos = vec3.create();
-vec3.add(eyePos, pos, dir);  -->  сложение векторов
-mat4.lookAt(viewMat, pos, eyePos, up);
-
-Алгоритм вычисления матрицы вида в lookAt():
-...
-Vector3 zAxis = normal(eyePos - pos);  -->  вектор взгляда
-Vector3 xAxis = normal(cross(up, zAxis));  -->  вектор направо
-Vector3 yAxis = cross(zAxis, xAxis);  -->  вектор вверх
-
-Matrix4 orientationMat = {
-  xAxis.x, yAxis.x, zAxis.x, 0,
-  xAxis.y, yAxis.y, zAxis.y, 0,
-  xAxis.z, yAxis.z, zAxis.z, 0,
-  0, 0, 0, 1
-};
-
-Matrix4 translationMat = {
-  1, 0, 0, 0
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  -pos.x, -pos.y, -pos.z, 1
-};
-
-viewMat = translationMat * orientationMat;
-
-Для поворота камеры, можно повернуть векторы: взгляда, верха или вправо.
+Для поворота камеры, можно повернуть вектор: взгляда, верха или вправо.
 Вращение вокруг вектора взгляда называется Roll. Вращение вокруг верха - Yaw. 
 Вращение вокруг вектора вправо - Pitch (cм. связанная система координат самолета).
 Вращение по этим векторам/осям задается через углы Эйлера.
@@ -704,6 +669,9 @@ viewMat = translationMat * orientationMat;
 x, y, z, w. Компоненты xyz - это ось вращения, а w - величина поворота:
 ...
 0, 1, 0, 90  -->  поворот вокруг Y на 90 градусов.
+
+Помимо этого, вращение с использованием кватернионов происходит намного 
+быстрее, чем при использовании матрицы поворота.
 
 Кватернион можно получить из матрицы вращения и также получить матрицу 
 из кватерниона: quat.fromMat3(); mat3.fromQuat(); 
@@ -719,6 +687,98 @@ x, y, z, w. Компоненты xyz - это ось вращения, а w - в
 Соотношение сторон (aspect ratio) - это величина, определяющая форму пирамиды
 (квадратная или прямоугольная пирамида). Определяется путем деления ширины основания 
 на высоту основания. От этого зависит, будут ли объекты вытянутыми или зауженными.
+
+Класс Camera является базовым для всех камер.
+Класс FreeCamera предоставляет ф-ционал свободной камеры.
+
+В 3D-играх обычно используются камеры 3х типов: 
+* свободная (free) - камера от первого лица, кот. перемещается в любом направлении;
+* целевая (target) - камера от третьего лица, кот. следует за своей целью;
+* орбитальная (orbit) - целевая камера, кот. вращается вокруг цели;
+
+Пример реализации ф-ций вращения (через кватернионы):
+...
+const pitch = angle => rotateOnAxis(left, angle);
+const yaw = angle => rotateOnAxis(up, angle);
+const roll = angle => rotateOnAxis(dir, angle);
+
+function rotateOnAxis(axis, angle) {
+  const q = quat.create();
+  quat.setAxisAngle(q, axis, angle);
+
+  // Векторы dir, up, left вычисляются также, как в алгоритме  
+  // вычисления матрицы вида (стр. 179).
+  
+  vec3.transformQuat(dir, dir, q);
+  vec3.normalize(dir, dir);
+
+  vec3.transformQuat(left, left, q);
+  vec3.normalize(left, left);
+
+  vec3.transformQuat(up, up, q);
+  vec3.normalize(up, up);
+}
+
+Ф-ция moveForward() перемещает камеру в направлении взгляда, 
+на расстояние distance:
+...
+function moveForward(distance) {
+  const x = pos[0] - distance * dir[0];
+  const y = pos[1] - distance * dir[1];
+  const z = pos[2] - distance * dir[2];
+  pos = vec3.fromValues(x, y, z);
+}
+
+Ф-ция update() заставляет камеру перемещаться/вращаться 
+вместе с игровой моделью:
+...
+function update(timeStep) {
+  if (vec3.squaredLength(linVel) > 0.0) {
+    vec3.scale(vel, vel, timeStep);
+    vec3.add(pos, vel, pos);
+  }
+
+  if (vec3.squaredLength(angVel) > 0.0) {
+    pitch(angVel[0] * timeStep);
+    yaw(angVel[1] * timeStep);
+    roll(angVel[2] * timeStep);
+  }
+}
+
+Чтобу установить камеру, используется метод lookAt():
+...
+const viewMat = mat4.create();
+const lookAtPos = vec3.create();
+vec3.add(lookAtPos, pos, dir);          -->  вектор взгляда вычисляется путем 
+mat4.lookAt(viewMat, pos, lookAtPos, up);    сложения позиции с направлением
+
+Метод lookAt() принимает 4 параметра: 
+1) матрица вида (выходной);
+2) позиция камеры;
+3) позиция взгляда;
+4) вектор вверх;
+
+Алгоритм вычисления матрицы вида в lookAt():
+...
+Vector3 zAxis = normal(lookAtPos - pos);   -->  вектор взгляда
+Vector3 xAxis = normal(cross(up, zAxis));  -->  вектор вправо
+Vector3 yAxis = cross(zAxis, xAxis);       -->  вектор вверх
+
+Matrix4 orientationMat = {       -->  возможно это матрица поворота
+  xAxis.x, yAxis.x, zAxis.x, 0,
+  xAxis.y, yAxis.y, zAxis.y, 0,
+  xAxis.z, yAxis.z, zAxis.z, 0,
+  0, 0, 0, 1
+};
+
+Matrix4 translationMat = {
+  1, 0, 0, 0
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  -pos.x, -pos.y, -pos.z, 1
+};
+
+viewMat = translationMat * orientationMat;
 
 ------------------
 
