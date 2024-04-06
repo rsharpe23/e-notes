@@ -79,3 +79,18 @@ var value = getValue();  -->  можно написать и так
 Web Api лучше оформлять как любой другой Api:
 api.post('/products', data, cb)  -->  shop.buyProducts(products, cb).
 
+------------
+
+Для метода с коротким названием, параметры могут начинаться с той же строки и далее
+переноситься, с выравниванием по открывающей круглой скобке. А если у метода 
+длинное название, то параметры лучше начинать с новой строки.
+...
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height,
+              0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+gl.framebufferRenderbufferAndAnotherAction(
+  gl.TEXTURE_2D, 0, gl.RGBA, 
+  width, height, 0, gl.RGBA, 
+  gl.UNSIGNED_BYTE
+);
+

@@ -1172,11 +1172,71 @@ function applyProjection(vect, m) {
   );
 }
 
-Picking можно реализовать и с помощью фреймбуфера, на основе цвета объекта в 
-позиции клика (фреймбуфер - это как раз то, что надо для реализации 
-системы брони танков, подробнее на стр. 322 и 338).
+Picking можно реализовать и с помощью фреймбуфера (на основе цвета объекта 
+в позиции клика). Подробнее на стр. 322 и 338.
 
+Фреймбуфер используется для реализации внеэкранного (offscreen) рендеринга.
+Это полезно, когда нужно что-то отобразить, при том чтобы пользователь этого не видел.
+(это как раз то, что надо для реализации системы брони танков). С пом. него можно
+также создавать тени, кешировать изображения и прочее (стр. 338).
 
+Объект фреймбуфера (FBO) позволяет игре захватывать сцены в память GPU для 
+дальнейшей обработки. После захвата (отрисовки) можно считывать данные пикселей.
+
+При работе с текстурами, для экономии памяти, цветовые данные можно хранить 
+в TBO, а значения глубины - в объекте рендербуфера (RBO):
+...
+const tbo = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, tbo);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height,
+              0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+const rbo = gl.createRenderbuffer();
+gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
+gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+
+В методе texImage2D() последнему параметру передается null (вместо image) 
+чтобы просто создать память, т.к. текстура (TBO) создается для хранения данных.
+
+Рендербуфер имеет тот же размер, что и текстура, с 16-битным хранилищем для 
+компонента глубины. WebGL для изображений (image) использует объекты рендербуфера.
+
+Связывание текстуры и рендербуфера с фреймбуфером:
+...
+const fbo = gl.createFramebuffer();
+gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+
+gl.framebufferTexture2D(
+  gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,  --> связываем текстуру
+  gl.TEXTURE_2D, tbo, 0
+);
+
+gl.framebufferRenderbuffer(
+  gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT,  --> связываем рендербуфер
+  gl.RENDERBUFFER, rbo
+);
+
+После этого можно отвязать все буферные объекты:
+...
+gl.bindTexture(gl.TEXTURE_2D, null);
+gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+Отрисовка (рендеринг) во фреймбуфер и на экран:
+...
+gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+drawScene();                                -->  рендерим во фреймбуфер
+gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+drawScene();                                -->  рендерим на экран
+
+Любой буферный объект, если связать его (сделать активным) перед отрисовкой, станет
+целью рендеринга. Также и с FBO. Чтобы отрисовать в него, нужно просто 
+связать его перед вызовом метода drawScene().
+
+Чтобы выполнить отрисовку на экран, нужно отвязать фреймбуфер. После этого активным
+буфером станет буфер по умолчанию (возможно тот, что был привязан ранее).
 
 ------------------
 
