@@ -649,8 +649,8 @@ skylight-освещение или скайбоксы.
 
 Пример реализации кубической карты (мультитекстурирование):
 ...
-сonst cubeTbo = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeTbo);
+сonst cubeTexture = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeTexture);
 
 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -1191,10 +1191,10 @@ Picking можно реализовать и с помощью фреймбуф�
 дальнейшей обработки. После захвата (отрисовки) можно считывать данные пикселей.
 
 При работе с текстурами (в контексте фреймбуфера) цветовые данные можно хранить 
-в TBO, а значения глубины - в объекте рендербуфера (RBO):
+в объекте texture, а значения глубины - в объекте рендербуфера (RBO):
 ...
-const tbo = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, tbo);
+const texture = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, texture);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height,
@@ -1205,7 +1205,7 @@ gl.bindRenderbuffer(gl.RENDERBUFFER, rbo);
 gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
 
 В методе texImage2D() последнему параметру передается null (вместо image) 
-чтобы просто выделить память, т.к. текстура (TBO) создается для хранения данных.
+чтобы просто выделить память, т.к. texture создается только для хранения данных.
 
 Метод renderbufferStorage() создаёт память, для хранения 16-битного компонента 
 глубины текстуры. API WebGL использует объекты рендербуфера для изображений 
@@ -1218,7 +1218,7 @@ gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
 gl.framebufferTexture2D(
   gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,  --> связываем текстуру
-  gl.TEXTURE_2D, tbo, 0
+  gl.TEXTURE_2D, texture, 0
 );
 
 gl.framebufferRenderbuffer(
@@ -1226,7 +1226,7 @@ gl.framebufferRenderbuffer(
   gl.RENDERBUFFER, rbo
 );
 
-После этого можно отвязать все буферные объекты:
+После этого можно отвязать все объекты:
 ...
 gl.bindTexture(gl.TEXTURE_2D, null);
 gl.bindRenderbuffer(gl.RENDERBUFFER, null);
