@@ -712,3 +712,5 @@ function fn(strings, values) {
   console.log(values);       -->  [3, 5, 8]
 }
 
+В JS, переменную можно объявить прям в самом условнии: if (value = getValue()) {}.
+
