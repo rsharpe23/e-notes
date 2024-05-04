@@ -181,3 +181,26 @@ export default {
   fn2() {},
 };
 
+-----------------------------------
+
+Если название ф-ции во множественном числе, но при этом ф-ция не возвращает 
+коллекцию, то к названию нужно добавлять постфикс "Of":
+...
+getNumComponents --> getNumComponentsOf  // возвращает кол-во компонентов
+
+-----------------------------------
+
+Иногда можно выносить часть логики во внешний контекст:
+...
+
+// Нормально
+function fn(meshes, data) {
+  const meshProvider = new MeshProvider(data);
+  return meshes.map(mesh => meshProvider.getMesh(mesh));
+}
+
+// Так лучше
+function fn(meshes, meshProvider) {
+  return meshes.map(mesh => meshProvider.getMesh(mesh));
+}
+
