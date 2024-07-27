@@ -210,7 +210,7 @@ function traverse(cb) { ... }          // cb вместо onTraverse **
 
 -----------------------------------
 
-Если метод класса возвращает поле класса, то он должен быть свойством:
+Если метод класса возвращает поле класса, то это должно быть свойством:
 
 get matrix() {
   if (this.parent) {
@@ -238,7 +238,32 @@ get matrix() {
 
 -----------------------------------
 
-Утилиты - это набор фасадных ф-ций. API - это способ взаимодействия двух разных
-программ или компонентов друг с другом (ф-ции + классы, которые управляют 
-какой-то программой, файлом, системой и т.п.).
+Утилита - это набор фасадных ф-ций, либо ф-ций, реализующих дополнительные
+возможности в контексте какого-то компонента.
+
+API - это способ взаимодействия двух разных программ или компонентов друг с другом 
+(ф-ции + классы для управления какой-то программой, файлом, системой и т.п.).
+
+-----------------------------------
+
+Через this лучше обращаться к тем свойствам, которые требуют изменения состояния:
+
+// Плохо
+setLocations() {
+  this.a_Position = this.gl.getAttribLocation(this.target, "a_Position");
+  this.a_Normal = this.gl.getAttribLocation(this.target, "a_Normal");
+}
+
+// Лучше
+setLocations() {
+  const { gl, target } = this;
+  this.a_Position = gl.getAttribLocation(target, "a_Position");
+  this.a_Normal = gl.getAttribLocation(target, "a_Normal");
+}
+
+// Хорошо
+setLocations({ gl, target }) {
+  this.a_Position = gl.getAttribLocation(target, "a_Position");
+  this.a_Normal = gl.getAttribLocation(target, "a_Normal");
+}
 
