@@ -136,11 +136,16 @@ const Plugin = {
 };
 
 // Нужно делать так
-const myProject = { 
+const myModule = { 
   data: [],
   Plugin: class {},
   staticFn() {},
 };
+
+При использование ES6-модулей, пространство имен определяется так:
+
+import * as myModule from './module1.js';
+const plugin = new myModule.Plugin();
 
 -----------------------------------
 
