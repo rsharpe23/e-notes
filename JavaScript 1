@@ -481,7 +481,7 @@ import(modulePath).then(obj => alert(obj.default));
 
 Модули не могут быть голыми (bare). Их путь должен обязательно включать расширение
 файла. Голые модули частично поддерживается в Node JS, при условии что они установлены
-в node_modules (название модуля можно узнать в секции name, файла package.json).
+в node_modules (название модуля можно узнать в секции name, файла package.json)
 
 import module1 from 'module_from_node_modules';  // только главный файл
 import module2 from './local_module.js';
