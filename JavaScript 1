@@ -479,6 +479,35 @@ import(modulePath).then(obj => alert(obj.default));
 
 Или так: let { fn1, fn2 } = await import(modulePath);
 
+Модули не могут быть голыми (bare). Их путь должен обязательно включать расширение
+файла. Голые модули частично поддерживается в Node JS, при условии что они установлены
+в node_modules (название модуля можно узнать в секции name, файла package.json).
+
+import module1 from 'module_from_node_modules';  // только в Node JS
+import module2 from './local_module.js';
+
+Чтобы голые модули были доступны в браузере, нужно использовать импортмап. 
+Импортмап задаётся через тег script с типом importmap (на странице 
+разрешен только один тег с типом importmap).
+
+<script type="importmap">
+{
+  "imports": {
+    "lodash": "/node_modules/lodash-es/lodash.js",   // доступ к lodash.js
+    "lodash/": "/node_modules/lodash-es/",           // доступ к доп. файлам
+    "lodash/util": "/node_modules/lodash-es/util.js" // доступ к доп. конкетному файлу
+    "vue": "https://www.unpkg.com/vue.esm.js"        // доступ к файлу из cdn
+  }
+}
+</script>
+
+import _ from "lodash";
+import fp from "lodash/fp.js";
+import util from "lodash/util";
+
+Также импортмап можно подключить и через src: 
+<script type="importmap" src="import-map.importmap"></script>
+
 ---------------------------------------------
 
 Proxy и Reflect.
@@ -712,5 +741,6 @@ function fn(strings, values) {
   console.log(values);       -->  [3, 5, 8]
 }
 
-В JS, переменную можно объявить прям в самом условнии: if (value = getValue()) {}.
+Создание переменной внутри if не поддерживается в строгом режиме:
+if (value = getValue()) {}  // см. Строгий режим
 
