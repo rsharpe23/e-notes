@@ -483,7 +483,7 @@ import(modulePath).then(obj => alert(obj.default));
 файла. Голые модули частично поддерживается в Node JS, при условии что они установлены
 в node_modules (название модуля можно узнать в секции name, файла package.json).
 
-import module1 from 'module_from_node_modules';  // только в Node JS
+import module1 from 'module_from_node_modules';  // только главный файл
 import module2 from './local_module.js';
 
 Чтобы голые модули были доступны в браузере, нужно использовать импортмап. 
