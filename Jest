@@ -1,0 +1,104 @@
+Установка: npm install --save-dev
+
+После установки нужно отредактировать package.json: { "scripts": { "test": "jest" } }
+
+Запуск тестов: npm run test
+
+Запустить Jest из командной строки (нужно, чтобы он был установлен глобально), 
+с использованием конфигурационного файла:
+
+ jest my-file --notify --config=config.json
+
+Создание конфигурационного файла: npm init jest@latest
+
+Jest поддерживает TypeScript через Babel (см. документацию по настройке Babel).
+
+Jest использует сопоставления для тестирования различных значений. Ф-ция expect() возвращает объект ожиданий. Объект ожиданий работает с вычислителями. 
+Ф-ция toBe() - это вычислитель.
+
+ test('two plus two equals four', () => {
+   expect(2 + 2).toBe(4); // сопоставление
+ });
+
+Чтобы задать противоположное сопоставление, нужно использовать not:
+ expect(a + b).not.toBe(0);
+
+Проверить поля объекта можно с пом. вычислителя toEqual. Он рекурсивно проверяет
+каждое поле объекта или массива. Также есть вычислитель toStrictEqual, 
+который учитывает также undefined-поля. 
+
+Вычислители toBe и toEqual эквивалентны по отношению к числам.
+
+Вычислители для undefined, null и false:
+ * toBeNull - соотв. только null;
+ * toBeUndefined - соотв. только undefined;
+ * toBeDefined - противоположно toBeUndefined;
+ * toBeTruthy - соотв. всему, что if рассматривает как true;
+ * toBeFalsy - все, что if рассматривает как false;
+
+Вычислители для сравнения чисел: toBeGreaterThan, toBeGreaterThanOrEqual,
+ toBeLessThan, toBeLessThanOrEqual.
+
+Для сравнения вещественных значений нужно использовать toBeCloseTo:
+ expect(0.1 + 0.2).toBeCloseTo(0.3);
+
+Для сопоставления строк с рег. выр-ями, используется toMatch:
+ expect('Вася').toMatch(/ася/);
+
+Чтобы проверить, содержит ли массив или итерируемый объект конкретное 
+значение, используется toContain:
+
+ expect(['hello', 'world']).toContain('hello');
+
+Для прверки ф-ции, которая выбрасывает исключение, используется toThrow.
+Такую ф-цию нужно вызывать внутри ф-ции обертки, иначе toThrow завершится неудачно.
+ 
+ function myFunc() {
+   throw new Error('you are using the wrong JDK!');
+ }
+
+ expect(() => myFunc()).toThrow();
+ expect(() => myFunc()).toThrow(Error); 
+ expect(() => myFunc()).toThrow('you are using the wrong JDK!');  // строка ошибки
+ expect(() => myFunc()).toThrow(/JDK/)  // регулярка
+
+Для тестирования асинхронного кода, нужно чтобы test() возвращал промис:
+
+ test('...', () => {
+   return fetchStr().then(str => {
+     expect(str).toBe('hello world!');
+   });
+ });
+
+Тоже самое, но с использованием async/await:
+  
+ test('...', async () => {
+   const str = await fetchStr();
+   expect(str).toBe('hello world!');
+ });
+
+Если ожидается что промис будет выполнен или отклонен неверняка, то можно 
+использовать resolves и rejects соответсвенно.
+
+ return expect(fetchData()).resolves.toBe('hello world!');
+ return expect(fetchData()).rejects.toBe('error');
+
+Можно комбинировать async/await вместе с resolves или rejects:
+
+ await expect(fetchData()).resolves.toBe('hello world!');
+ await expect(fetchData()).rejects.toMatch('error');
+
+Чтобы использовать колбеки вместо промисов, нужно у передаваемой в test() ф-ции,
+указать параметр done и вызывать его после expect()
+ 
+ test('...', done => {
+   fetchData(str => {
+     expect(str).toBe('hello world!');
+     done();  // можно также передать объект ошибки
+   });
+ });
+
+
+Подготовка и очистка...
+
+
