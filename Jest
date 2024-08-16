@@ -1,20 +1,21 @@
 Установка: npm install --save-dev
 
-После установки нужно отредактировать package.json: { "scripts": { "test": "jest" } }
+После установки нужно отредактировать package.json: 
+ { "scripts": { "test": "jest" } }
 
 Запуск тестов: npm run test
 
-Запустить Jest из командной строки (нужно, чтобы он был установлен глобально), 
-с использованием конфигурационного файла:
+Запуск Jest из командной строки, с использованием конфигурационного файла
+(нужно, чтобы Jest был установлен глобально): 
 
  jest my-file --notify --config=config.json
 
-Создание конфигурационного файла: npm init jest@latest
-
+Создание конфигурационного файла Jest: npm init jest@latest
 Jest поддерживает TypeScript через Babel (см. документацию по настройке Babel).
 
-Jest использует сопоставления для тестирования различных значений. Ф-ция expect() возвращает объект ожиданий. Объект ожиданий работает с вычислителями. 
-Ф-ция toBe() - это вычислитель.
+Тесты объявляются внутри блока test. Чтобы что-то протестировать, нужно задать
+сопоставление с пом. ф-ции expect(). Эта ф-ция возвращает объект ожиданий. 
+Объект ожиданий работает с вычислителями (toBe, toEqual и др.).
 
  test('two plus two equals four', () => {
    expect(2 + 2).toBe(4); // сопоставление
@@ -25,7 +26,7 @@ Jest использует сопоставления для тестирован
 
 Проверить поля объекта можно с пом. вычислителя toEqual. Он рекурсивно проверяет
 каждое поле объекта или массива. Также есть вычислитель toStrictEqual, 
-который учитывает также undefined-поля. 
+который учитывает и undefined-поля. 
 
 Вычислители toBe и toEqual эквивалентны по отношению к числам.
 
@@ -39,10 +40,10 @@ Jest использует сопоставления для тестирован
 Вычислители для сравнения чисел: toBeGreaterThan, toBeGreaterThanOrEqual,
  toBeLessThan, toBeLessThanOrEqual.
 
-Для сравнения вещественных значений нужно использовать toBeCloseTo:
+Для сравнения вещественных чисел нужно использовать toBeCloseTo:
  expect(0.1 + 0.2).toBeCloseTo(0.3);
 
-Для сопоставления строк с рег. выр-ями, используется toMatch:
+Для сопоставления строк с регулярными выражениями, используется toMatch:
  expect('Вася').toMatch(/ася/);
 
 Чтобы проверить, содержит ли массив или итерируемый объект конкретное 
@@ -53,16 +54,16 @@ Jest использует сопоставления для тестирован
 Для прверки ф-ции, которая выбрасывает исключение, используется toThrow.
 Такую ф-цию нужно вызывать внутри ф-ции обертки, иначе toThrow завершится неудачно.
  
- function myFunc() {
-   throw new Error('you are using the wrong JDK!');
- }
-
  expect(() => myFunc()).toThrow();
  expect(() => myFunc()).toThrow(Error); 
  expect(() => myFunc()).toThrow('you are using the wrong JDK!');  // строка ошибки
  expect(() => myFunc()).toThrow(/JDK/)  // регулярка
+ ...
+ function myFunc() {
+   throw new Error('you are using the wrong JDK!');
+ }
 
-Для тестирования асинхронного кода, нужно чтобы test() возвращал промис:
+Для тестирования асинхронного кода, нужно чтобы test возвращал промис:
 
  test('...', () => {
    return fetchStr().then(str => {
@@ -88,17 +89,155 @@ Jest использует сопоставления для тестирован
  await expect(fetchData()).resolves.toBe('hello world!');
  await expect(fetchData()).rejects.toMatch('error');
 
-Чтобы использовать колбеки вместо промисов, нужно у передаваемой в test() ф-ции,
+Чтобы использовать колбеки вместо промисов, нужно у передаваемой в test ф-ции,
 указать параметр done и вызывать его после expect()
  
  test('...', done => {
    fetchData(str => {
      expect(str).toBe('hello world!');
-     done();  // можно также передать объект ошибки
+     done();  // можно передать объект ошибки
    });
  });
 
+Если каждый тест требует какой-то доп. работы перед или после выполнения, 
+то её можно реализовать в хуках beforeEach() и afterEach().
 
-Подготовка и очистка...
+ beforeEach(() => initializeBeforeTest());  // можно вызвать по нескольку штук
+ afterEach(() => clearAfterTest());
 
+ test(..., () => {});
+ test(..., () => {});
+ test(..., () => {});
+
+Хуки beforeEach() и afterEach() могут работать с асинхронным кодом. Для этого они 
+также должны возвращать промис, либо вызывать done (в случае с колбеком).
+
+Если требуется доп. работа сразу для всех тестов, то она реализуется 
+через beforeAll() и afterAll().
+
+Если эти хуки указаны внутри блока describe, то они будут применятся только 
+к его локальным тестам. Они вызываются после основных.
+
+Блок describe группирует тесты. Он выполняется до их запуска, а посему все
+подготовительные и завершающие работы нужно делать имеено в хуках before* и after*. 
+
+ describe('common test description', () => {
+   test(..., () => {});
+   test(..., () => {});
+   test(..., () => {});
+ });
+
+Если какой-то тест часто падает находясь в наборе с другими тестами, но не падает
+будучи запущенным в одиночку, значит что-то ему мешает из другого теста.
+
+Чтобы запустить тест в одичноку, нужно test поменять на test.only:
+ test.only('...', () => {});
+
+Чтобы тестировать связи между компонентами, нужно использовать mock'и. Mock - это
+имитация сущности, например ф-ции или модуля (ES6-классы можно имитиров. через ф-ции).
+
+Моковую ф-цию можно создать так: const mockCallback = jest.fn(x => x + 23);
+
+После этого, её нужно передать в тестируемый компонент и проверить, 
+что он с ней сделает, например:
+
+ test('...', () => {
+   myForEach([1, 3, 7], mockCallback);
+
+   // Проверить, был ли колбек вызван 3 раза
+   expect(mockCallback.mock.calls).toHaveLength(3);
+
+   // Является ли первый аргумент, при третем вызове колбека, числом 7
+   expect(mockCallback.mock.calls[2][0]).toBe(7);
+
+   // Является ли возвращ. значение, при первом вызове колбека, числом 24
+   expect(mockCallback.mock.results[0].value).toBe(24);
+ });
+
+У моковых ф-ций есть свойство mock, в котором хранятся данные о том, как ф-ция 
+была вызвана и что она вернула. Дополнительные примеры:
+
+ // Была ли ф-ция вызвана в контексте someObject
+ expect(mockFn.mock.contexts[0]).toBe(someObject);
+
+ // Вызывалась ли ф-ция через new дважды (т.е. так new mockFn())
+ expect(mockFn.mock.instances.length).toBe(2);
+
+ // Имеет ли первый объект, который был создан через ф-цию, 
+ // свойством name со значением "test"
+ expect(mockFn.mock.instances[0].name).toBe('test');
+
+ // Является ли первый аргумент, последнего вызова ф-ции, строкой "test"
+ expect(mockFn.mock.lastCall[0]).toBe('test');
+
+Моковые ф-ции могут внедрять тестовые значения в компонент. Это очень удобно, 
+когда нужны различные заглушки:
+
+ const mockFn = jest.fn();
+ mockFn.mockReturnValueOnce(10).mockReturnValueOnce('x').mockReturnValue(false);
+
+ console.log(mockFn(), mockFn(), mockFn(), mockFn());     -->  20, 'x', false, false
+ console.log( [1, 2, 3, 4].filter(num => mockFn(num)) );  -->  [1, 2]
+
+Если моковая ф-ция должна возвращать this, то можно использовать mockReturnThis.
+ const mockFn = jest.fn().mockReturnThis();
+
+Моковой ф-ции можно задать имя. Оно будет отображаться вместо "jest.fn()", при ошибке:
+ const mockFn = jest.fn().mockName('my mock function');
+
+Синтаксисческий сахар для работы с моковыми ф-циями:
+
+ // Ф-ция вызвана хотя бы один раз. Тоже, что и
+ // expect(mockFunc.mock.calls.length).toBeGreaterThan(0);
+ expect(mockFunc).toHaveBeenCalled();
+
+ // Ф-ция вызвана хотя бы один раз с указанными аргументами. Тоже, что и
+ // expect(mockFunc.mock.calls).toContainEqual([arg1, arg2]);
+ expect(mockFunc).toHaveBeenCalledWith(arg1, arg2);
+
+ // Последний вызов ф-ции был сделан с указанными аргументами. Тоже, что и
+ // expect(mockFunc.mock.calls[mockFunc.mock.calls.length - 1]).toEqual([arg1, arg2]);
+ expect(mockFunc).toHaveBeenLastCalledWith(arg1, arg2);
+
+Имитация модуля происходит следующим образом:
+
+  import axios from 'asios';
+  
+  jest.mock('axios');
+
+  test('...', () => {
+    const response = { data: [{ name: 'Bob' }] };
+    axios.get.mockResolvedValue(response);
+
+    return fetchData().then(data => expect(data).toEqual(response));
+  });
+
+Сначала импортируется сам модуль. Затем он имитируется с пом. jest.mock. После,
+устанавливается заглушка для axios.get (поскольку get возвращает промис, то вместо
+mockReturnValue используется mockResolvedValue). И наконец, выполняется тестирование.
+
+Весь смысл в том, чтобы протестировать логику работы ф-ции fetchData(), но при этом 
+не вызывать по настоящему axios.get, внутри неё.
+
+Имитация пользовательского модуля:
+
+ import foo, { bar } from './foo-bar.js';
+
+ jest.mock('./foo-bar.js', () => {
+   const originalModule = jest.requireActual('./foo-bar.js');
+   return {
+     __esModule: true,
+     ...originalModule,
+     default: jest.fn(() => 'mocked foo'),
+     bar: 'mocked bar',  // не обязательно имитировать весь модуль 
+   };
+ });
+
+ test('...', () => {
+   expect(foo).toHaveBeenCalled();
+   expect(foo()).toBe('mocked foo');
+   expect(bar).toBe('mocked bar');
+ });
+
+ДОПИСАТЬ РЕКОМЕНДАЦИИ ИЗ LEARN JS (ПО ПРИМЕРУ РАБОТЫ С MOCHA)
 
