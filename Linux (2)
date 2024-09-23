@@ -431,3 +431,5 @@ cat file.txt | tr a-z A-Z > file2.txt  -->  тоже самое, но резул
 
 Управление пользователями...
 
+reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecureBoot\SBAT /v OptOut /d 1 /t REG_DWORD
+
