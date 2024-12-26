@@ -362,3 +362,70 @@ const ns = {
 
 3) При реализации паттерна "модуль".
 
+-----------------------
+
+Структура кода для однофайлового проекта (паттерн "модуль" + "объектный литерал"):
+
+(() => {
+  
+  const util = () => new Date();
+  
+  const wgt = {
+    opts: [],
+    someValue: 0,
+    
+    Widget: (() => {
+      const value = 23;      
+      const fn = name => `Hello ${name} ${value}`;
+      
+      const Inner = class {
+        constructor(widget) { this.widget = widget; }
+        getMsg() { return fn(this.widget.name); }
+      };
+      
+      return class {
+        constructor(name) { this.name = name; }
+        
+        printMsg() {
+          const inner = new Inner(this);
+          console.log(inner.getMsg());
+        }
+      };
+    })(),
+    
+    MyEvent: class extends CustomEvent {},
+    ClassWithoutPrivateData: class {},
+    
+    create() {
+      if (wgt.someValue > 0)
+        throw new Error('Some error');
+      
+      return new wgt.Widget('CheckBox');
+    }
+  };
+  
+  wgt.Menu = (() => {
+    // Большие классы лучше размещать в доп. локальном пространстве
+    return class extends wgt.Widget {
+      constructor(name, type) {
+        super(name);
+        this.type = type;
+      }
+      
+      printMsg() {
+        super.printMsg();
+        console.log(`My type is ${this.type}`);
+      }
+    }
+  })();
+  
+  const widget = wgt.create();
+  widget.printMsg();
+  
+  const widget2 = new wgt.Menu('foo', 'bar');
+  widget.printMsg();
+  
+  console.log(util());
+  
+})();
+
