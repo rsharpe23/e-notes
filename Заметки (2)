@@ -126,10 +126,9 @@ const newNode = node.querySelector('.title');
 // Плохо
 return Object.keys(obj).findIndex(k => k === key);
 
-// Хорошо
+// Лучше (результат можно узнать во внешнем контексте)
 const keys = Object.keys(obj);
-const index = keys.findIndex(k => k === key);
-return index;
+return keys.findIndex(k => k === key);
 
 -----------------------
 
