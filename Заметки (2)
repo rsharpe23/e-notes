@@ -111,12 +111,17 @@ node.querySelector('.title')
     .formatText(typesMap[type])
     .formatText(words[0], words[1]);
 
-// Из-за return придется делать слишком много отступов
+// Из-за return и const придется делать слишком отступов
+
 return node.querySelector('.title')
   .formatText(typesMap[type])
   .formatText(words[0], words[1]);
 
-По возможности лучше избегать цепочек вызовов, т.к. их сложнее отлаживать:
+const newNode = node.querySelector('.title');
+  .formatText(typesMap[type])
+  .formatText(words[0], words[1]);
+
+По возможности лучше вообще избегать цепочек вызовов, т.к. их сложнее отлаживать.
 
 // Плохо
 return Object.keys(obj).findIndex(k => k === key);
