@@ -116,6 +116,16 @@ return node.querySelector('.title')
   .formatText(typesMap[type])
   .formatText(words[0], words[1]);
 
+По возможности лучше избегать цепочек вызовов, т.к. их сложнее отлаживать:
+
+// Плохо
+return Object.keys(obj).findIndex(k => k === key);
+
+// Хорошо
+const keys = Object.keys(obj);
+const index = keys.findIndex(k => k === key);
+return index;
+
 -----------------------
 
 Если название переменной состоит из одного слова, то его желательно записывать
