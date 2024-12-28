@@ -104,6 +104,18 @@ gl.framebufferRenderbufferAndAnotherAction(
   gl.UNSIGNED_BYTE
 );
 
+При выполнении цепочки вызовов, ф-ции лучше выравнивать по одному уровню. Но если цепочка 
+вызовов используется как возвращаемое значение, то достаточно одного отступа.
+
+node.querySelector('.title')
+    .formatText(typesMap[type])
+    .formatText(words[0], words[1]);
+
+// Из-за return придется делать слишком много отступов
+return node.querySelector('.title')
+  .formatText(typesMap[type])
+  .formatText(words[0], words[1]);
+
 -----------------------
 
 Если название переменной состоит из одного слова, то его желательно записывать
