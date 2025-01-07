@@ -757,3 +757,6 @@ function fn(strings, values) {
 Создание переменной внутри if не поддерживается в строгом режиме:
 if (value = getValue()) {}  // см. Строгий режим
 
+Элегатный аналог parseInt(floatValue) это ~~floatValue:
+const n = 2.8; ~~n;  -->  2
+
