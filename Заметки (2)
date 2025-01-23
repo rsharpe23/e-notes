@@ -453,3 +453,21 @@ gltf-load.js её название должно быть просто load, бе
 findIndexOf(node), createBy(tag) и т.п. Если у ф-ции несколько параметров, то названия 
 лучше уточнять: findIndexOfNode(node, value), creatByTag(tag, opts)
 
+-----------------------
+
+Статические методы бывают очень полезны, когда требуется вспомогательный ф-ционал 
+для конкретного класса (чтобы не плодить утилиты):
+
+class Tooltip {
+  static targetTag = 'sub';    
+
+  constructor() { ... }
+  open() { ... }
+  close() { ... }
+
+  static findTargets(range) {
+    return nodeUtil.findNodesInRange(
+      range, node => node.tag === Tooltip.targetTag);
+  }
+}
+
