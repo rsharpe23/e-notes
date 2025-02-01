@@ -471,3 +471,14 @@ class Tooltip {
   }
 }
 
+-----------------------
+
+Если из коллбека требуется вернуть значение, то лучше предварительно присвоить его 
+в описательную переменную. Иначе может быть непонятно, что возвращать.
+
+respondWith(() => {
+  const cache = await caches.open(CACHE_NAME);
+  const cachedResponse = await cache.match(requestUrl);  // переменная cachedResponse поясняет, что нужно
+  return cachedResponse;                                 // вернуть из коллбека, т.к. здесь непонятно,
+});                                                      // что даёт cache.match()
+
