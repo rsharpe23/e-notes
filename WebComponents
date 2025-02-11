@@ -1,15 +1,15 @@
 ПОЛЬЗОВАТЕЛЬСКИЕ ЭЛЕМЕНТЫ
 
-Используются наравне со встроенными HTML-элементами: <my-table>, <tiny-carousel> и пр.
+Используются наравне со встроенными html-элементами: <my-table>, <tiny-carousel> и пр.
 
 Для создания пользовательского эл-та, необходимо расширить либо класс HTMLElement 
 (получится автономный пользовательский элемент), либо один из его наследников, 
 например HTMLButtonElement (получится встроенный пользовательский элемент).
 
-После создания эл-та, необходимо зарегистрировать его с пом. вызова: customElements.difine();
+После создания эл-та, необходимо зарегистрировать его с пом. вызова: customElements.difine():
 
-class MyElement extends HTMLElement {};
-customElements.define('my-element', MyElement);
+ class MyElement extends HTMLElement {};
+ customElements.define('my-element', MyElement);
 
 Имена пользовательских эл-тов должны содержать дефис:
  my-element  // валидное имя
@@ -41,14 +41,54 @@ customElements.get(name) и customElements.whenDefined(name).
 Когда пользовательский элемент расширяет наследника HTMLElement, то при регистрации нужно 
 также указывать тег наследника. При этом в html он будет указываться по другому.
 
-customElements.define('hello-button', HelloButton, { extends: 'button' });
-<button is="hello-button"></button>  // в html встроенный элемент указывается так
+ customElements.define('hello-button', HelloButton, { extends: 'button' });
+ <button is="hello-button"></button>  // в html встроенный элемент указывается так
 
 ----------------------------
 
 SHADOW DOM
 
+Используется для инкапсуляции разметки и стилей компонента. 
+Элементы теневого dom не видны из обычного dom, через querySelector. 
+У теневого dom свои стили. Стили из внешнего dom не применяются.
 
+Теневой dom cоздается с пом. метода attachShadow(opts):
+
+ // Для пользовательского элемента
+ connectedCallback() {
+   const shadow = this.attachShadow({ mode: 'open' });
+   shadow.innerHTML = `
+     <style>p { font-weight: bold; }</style> 
+     <p>Hello world</p>
+   `;
+ }
+
+ // Для обычного элемента
+ const elem = document.querySelector('.toolbar');
+ elem.attachShadow({ ... });
+
+Св-во mode задает режим инкапсуляции:
+ * open - будет доступен корень теневого dom, через elem.shadowRoot;
+ * closed - elem.shadowRoot будет всегда null и до теневого dom не добраться;
+
+У shadowRoot есть св-во host. Оно ссылается на хозяина. т.е. на elem:
+elem.shadowRoot.host === elem  -->  true
+
+Хозяином может быть: пользовательский элемент, article, aside, blockquote, body, div, 
+footer, h123456, header, main, nav, p, section, span. Остальные эл-ты не могут иметь теневой dom.
+
+Чтобы просмотреть элементы теневого dom, нужно включить в браузере доп. опцию, 
+например в хроме это "Show user agent shadow DOM".
+
+Каждый dom-элемент имеет 2 типа поддеревьев:
+ 1) light tree - дерево, состоящее из html-потомков;
+ 2) shadow tree - скрытое дерево, не отраженное в html;
+
+Если у элемента имеются оба поддерева, браузер будет отрисовывать только теневое.
+
+----------------------------
+
+ЭЛЕМЕНТ TEMPLATE
 
 
 
