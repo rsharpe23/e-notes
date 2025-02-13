@@ -185,7 +185,59 @@ DocumentFragment (особый тип dom-узла).
 
 ----------------------------
 
-НАСТРОЙКА СТИЛЕЙ
+СТИЛИЗАЦИЯ SHADOW DOM
+
+Чтобы задать стили для shadow dom, можно использ. локальные <style> и <link rel="stylesheet">. 
+Последний подргужает отдельный css-файл для конкретного пользовательского элемента.
+
+Локальные стили могут обращаться к псевдоклассу :host. Он позволяет выбрать хозяина 
+(элемент, содержащий shadow root) Также :host можно задать с доп. селектором :host(selector)
+
+При стилизации слотов, нужно стилизовать сам тег <slot> и пологаться на наследовании css:
+ slot[name="username"] { background-color: white; }
+
+Также можно использовать псевдокласс ::slotted(selector).
+Но он доступен только в css. Его нельзя использовать в querySelector(). 
+
+ // ::slotted(div) выберет тег <div slot="...">
+ <user-card>
+   <div slot="...">
+     <div>Моррис Балконский</div>
+   </div>
+ </user-card>
+
+Если требуется стилизовать shadow dom из основного css-файла, то нужно использ. css-переменные.
+CSS-переменные доступны как в основном dom, так и в теневом.
+
+ <style>
+   :root { --my-color: green; }
+ </style>
+
+ <template id="tmpl">
+   <style>
+     .user { color: var(--my-color); }
+   </style>
+   <div class="user">
+     Имя: <slot name="username"></slot>
+   </div>
+ </template>
+
+ <script>
+   customElements.define('user-card', class extends HTMLElement {
+     connectedCallback() {
+       ...
+       this.shadowRoot.append(tmpl.content.cloneNode(true));
+     }
+   });
+ </script>
+
+ <user-card>
+   <span slot="username">Моррис Токарев</span>  // будет зеленого цвета
+ </user-card>
+
+----------------------------
+
+SHADOW DOM И СОБЫТИЯ
 
 
 
