@@ -1,0 +1,59 @@
+Актуальная верcия: 7.x
+
+Варианты CDN: 
+
+ https://pixijs.download/v7.4.2/pixi.js
+ https://pixijs.download/v7.4.2/pixi.min.js
+
+ https://pixijs.download/v7.4.2/pixi.mjs
+ https://pixijs.download/v7.4.2/pixi.min.mjs
+
+-----------------
+
+Класс Application создает renderer, stage и ticker для обновления.
+ let app = new PIXI.Application({ width: 640, height: 360 });
+
+Когда Application создает renderer, он создает canvas в котором тот будет отрисовываться.
+Но его сначала нужно добавить на страницу. Канвас доступен по ссылке app.view.
+
+ document.body.appendChild(app.view);
+
+Простейший способ отрисовать изображение - это использовать класс Sprite.
+Pixi отрисовывает иерархию DisplayObject'ов. Sprite - это тип DisplayObject который
+оборачивает загруженное изображение, чтобы его можно было отрисовывать, 
+масштабировать, поворачивать и т.д.
+
+ let sprite = PIXI.Sprite.from('sample.png'); // загрузить картинку асинхронно
+
+После этого нужно добвить спрайт в stage. Stage - это корневой контейнер графа сцены.
+Каждый потомок этого контейнера будет орисовываться каждый кадр. Добавив спрайт в stage 
+мы скажем Pixi, что хотим отрисовывать его.
+
+ app.stage.addChild(sprite);
+
+Ticker - это объект, который запускает заданный колбек в каждом кадре. 
+Колбек принимает параметр delta - время, пройденное c момента последнего тика.
+
+ let elapsed = 0.0;
+ app.ticker.add(delta => {
+   elapsed += delta;
+   sprite.x = 100.0 + Math.cos(elapsed / 50.0) * 100.0;
+ });
+
+-----------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
