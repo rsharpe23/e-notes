@@ -166,11 +166,12 @@ PIXI.Apllication (т.е. когда канвас не растягивается
 
  const bundle = await PIXI.Assets.loadBundle('animals');
 
-Для работы с бандлами можно также использовать метод init({ manifest }). Он принимает объект
-манифеста с заданными ассетами, либо путь к файлу манифеста в формате json.
+Для работы с бандлами можно также использовать метод init({ manifest }) Он принимает 
+объект манифеста с заданными ассетами, либо путь к файлу манифеста в формате json. 
 Этот метод можно вызвать только один раз.
 
- PIXI.Assets.init({ manifest: 'path/manifest.json' });
+ PIXI.Assets.init({ manifest: 'path/manifest.json' }); // возможно нужно добавить await
+ PIXI.Assets.loadBundle('load-screen');
 
  {
    "bundles": [
