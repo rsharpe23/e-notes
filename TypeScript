@@ -1074,3 +1074,14 @@ function createObj(initData: any) {
 
 Подробнее, зачем нужен тип never: https://habr.com/ru/articles/471026/
 
+В TS можно импортировать и экспортировать только типы. Это нужно сборщикам 
+(webpack, esbuild и пр.) Сам же копмилятор ts может обойтись и без этого.
+
+export type class MyClass {}
+export interface User {
+  id: number;
+  name: string;
+}
+
+import type { User } from './types';
+
