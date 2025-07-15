@@ -153,11 +153,13 @@ StatusBar (отображает число), ScrollingMessageFrame (отобра
 Этапы загрузки аддона в игру описаны на стр. 141.
 Процесс локализации аддона описан на страницах 134-138.
 
-Дефолтные XML и Lua-файлы загружаются в том порядке, который задан в FrameXML.toc
+Дефолтные (близардовские) XML-фреймы и Lua-файлы находятся в папке FrameXML.
+Но чтобы получить к ней доступ, нужно извлечь ее из клиента с пом. специальной утилиты, 
+либо взять отсюда https://github.com/tekkub/wow-ui-source
 
 -----------------------
 
-РАБОТА С ФРЕЙМАМИ, ВИДЖЕТАМИ И ДР. ГРАФИЧ. ЭЛ-ТАМИ
+РАБОТА С ФРЕЙМАМИ И ДР. ГРАФИЧ. ЭЛ-ТАМИ
 
 Хотя фреймы можно создавать и через Lua, использование XML будет предпочтительнее, 
 т.к. он может валидировать их через XML-схему, а также дает возможность 
@@ -223,12 +225,12 @@ UIParent - это общий родительский фрейм для всег
  * BACKGROUND - здесь располагается фоновая текстура;
  * BORDER - рамки, которые отрисовываются поверх фоновой текстуры;
  * ARTWORK - декоративные элементы, которые располагаются поверх рамки и фона;
- * OVERLAY - любые элементы, которые распологаются выше всех предыдущих;
+ * OVERLAY - элементы, которые распологаются выше всех предыдущих, например текст;
 
  * HIGHTLIGHT - элементы, которые появляются при наведении мыши и перекрывают 
    все остальные (фрейм должен обрабатывать события mouseover);
  
-Пример использования in-game текстуры (верхняя левая часть окна банка):
+Пример создания текстуры (верхняя левая часть окна банка):
 
  <Layers>
    <Layer level="BORDER">
@@ -251,10 +253,92 @@ UIParent - это общий родительский фрейм для всег
    </Anchors>
    <Layers>
      <Layer level="BACKGROUND" setAllPoints="true">
-       <Color r="1.0" g="0.0" b="0.0" a="0.5"/>
+       -- Возможно, следует дополнительно обернуть в тег <Texture>
+       <Color r="1.0" g="0.0" b="0.0" a="0.5"/>  
      </Layer>
    </Layers>
  </Frame>
   
-Adding the Portrait Texture... 160
+Создание текстуры через Lua:
+
+ BagBuddy.bg = BagBuddy:CreateTexture("MyTexture", "BACKGROUND")
+ BagBuddy.bg:SetWidth(60)
+ BagBuddy.bg:SetWidth(60)
+ BagBuddy.bg:SetPoint("TOPLEFT", 7, -6)
+
+ BagBuddy.bg:SetTexture("Interface\\Icons\\INV_Misc_EngGizmos_30")
+
+ -- Вместо текстуры устанавливаем цветовую заливку
+ BagBuddy.bg:SetTexture(0.0, 0.0, 1.0, 0.5)
+
+Текст создается с помощью тега <FontString>. Он имеет такие атрибуты как: font, text,
+spacing, outline, justifyH/V и др. Полный список можно посмотреть на стр. 164. 
+
+ <Layer level="OVERLAY">
+   <FontString name="$parent_Title" parentKey="title" 
+               inherits="GameFontNormal" text="BagBuddy">
+     <Anchors>
+       <Anchor point="TOP">
+         <Offset x="0" y="-18"/>
+       </Anchor>
+     </Anchors>
+ </Layer>
+
+В примере выше, текст наследуется от стандратного шаблона GameFontNormal. Атрибут parentKey
+это ключ, по которому этот текст будет доступен в родительском фрейме (BagBuddy.title).
+Шаблон $parent хранит название родительского фрейма (получится BagBuddy_Title).
+
+Создание текста через Lua:
+
+ BagBuddy.title = BagBuddy:CreateFontString("BagBuddy_Title", "OVERLAY", "GameFontNormal")
+ BagBuddy.title:SetPoint("TOP", 0, -18)
+ BagBuddy.title:SetText("BagBuddy")
+
+Фрейм можно показать и скрыть с пом. методов Show() и Hide(). Метод IsShown() проверяет
+показан ли фрейм, а IsVisiable() - показан ли фрейм и все его предки.
+
+-----------------------
+
+ШАБЛОНЫ ФРЕЙМОВ
+
+Шаблоны помогают переиспользовать уже готовые части XML-разметки с их стилями. 
+Унаследовать шаблон можно с помощью атрибута inherits.
+
+ <Button name="BtnTemplate" virtual="true">
+   <Size x="16" y="16"/>
+   <Layers>
+     <Layer level="BACKGROUND">
+       <Texture name="$parentIcon" parentKey="icon">
+         <Color r="1.0" g="1.0" b="1.0"/>
+       </Texture>    
+     <Layer>
+   </Layers>
+ </Button>
+
+ <Button name="Btn1" inherits="BtnTemplate"/>
+ <Button name="Btn2" inherits="BtnTemplate">
+   <Anchors>
+     <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="Btn2"/>
+   </Anchors>
+ </Button>
+
+Стандартные шаблоны из клиентского файла UIPanelTemplates.xml:
+
+ * UIPanelButtonTemplate - стандартная кнопка;
+ * UIPanelCloseButton - кнопка "Х" из левого верхнего угла окна;
+ * UIPanelScrollBarTemplate - скроллбар окна или чата;
+ * InputBoxTemplate - поле ввода, как у чата;
+ * UICheckButtonTemplate - стандартный чекбокс;
+ * UIRadioButtonTemplate - стандартная радиокнопка;
+
+ * TabButtonTemplate - кнопка таба, как у окна чата при переключении каналов; 
+   для работы с табами можно использовать готовые утилиты из файла UIPanelTemplates.lua;
+
+Более подробное описание стандартных шаблонов можно найти на стр. 179-183.
+
+-----------------------
+
+РАБОТА С WOW API (187)
+
+
 
