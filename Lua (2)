@@ -435,7 +435,7 @@ MyAddon.xml
      print("Появляется при наведении курсора", self:GetName())
    </OnEnter>
 
-   -- Таким способом можно переопределять родительские обработчики событий
+   -- Таким способом можно переопределять родительские обработчики
    <OnLeave function="MyFrame_OnLeave"/>
  </Scripts>
 
@@ -489,5 +489,35 @@ MiddleButtonDown, Button4Up, AnyUp и т.д.
  * down - флаг, указывающий был ли это тип клика "down", а не "release";
 
 Пример создания многостраничной навигации приведен на стр. 220-225.
-Adding XML Definitions for Buttons and Status Text...
+Исходный код можно также взять из шаблона spellbook-фрейма.
+
+При работе с EditBox, происходит один баг. Он забирает фокус и не возвращает его.
+Чтобы этого не происходило, нужно переопределить поведение по умолчанию.
+
+Делается это с помощью атрибута autoFocus="false" и вызова метода ClearFocus(),
+когда ввод больше не требуется, например при нажатии на Esc:
+
+ <EditBox name="$parent_Input" parentKey="input" autoFocus="false">
+   <Size x="400" y="200"/>
+   <Anchors>
+     <Anchor point="BOTTOMLEFT">
+       <Offset x="32" y="100"/>
+     </Anchor>
+   </Anchors>
+
+   <OnEscapePressed>
+     self:ClearFocus()
+   </OnEscapePressed>
+
+   <OnTextChanged>
+     BagBuddy_Update()
+   </OnTextChanged>
+
+   <FontString inherits="GameFontHighlight"/>
+ </EditBox>
+
+EditBox должен также содержать иметь FontString для отображения текста.
+Чтобы получить текст, нужно вызвать BagBuddy.input:GetText().
+
+Exploring Widget Types (стр. 227)
 
