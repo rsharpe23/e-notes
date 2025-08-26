@@ -1,0 +1,213 @@
+ВВЕДЕНИЕ
+
+Angular 20 требует Node.js 24 (или ^22.12 или ^20.19), TypeScript от 5.8 до 5.9 
+и Angular CLI 20. Возможно также потребуется обновить npm.
+
+Установка Angular CLI: npm install -g @angular/cli
+
+Проверить версию Angular CLI: ng version
+Обновление Angular CLI: ng update
+Запустить веб-сервер и приложение: ng serve
+Скомпилировать приложение: ng build
+
+Если команде ng serve передать флаг --open, то автоматически откроется 
+браузер с приложением.
+
+При выполнении команд в PowerShell стоит учитывать, что по умолчанию там отключено выполнение
+скриптов, что не позволит выполнять определенные команды. Чтобы включить выполнение 
+скриптов, нужно выполнить команду:
+
+ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+
+Чтобы развернуть проект на Angular, можно просто взять готовый package.json со всеми 
+необходимыми зависимостями и выполнить команду: npm install.
+
+Минимальный набор конфигурационных файлов проекта на Angular: 
+package.json, tsconfig.json, angular.json.
+
+Файл package.json определяет зависимости проекта.
+Файл tsconfig.json определяет конфигурации компилятора ts.
+Файл angular.json определяет конфигурации проекта и CLI. 
+
+Проект обычно состоит из главной html-страницы, bootstrap-файла и набора компонентов.
+Каждый компонент может быть представлен либо одним файлом, где все состовляющие определены 
+в одном месте, либо набором разделенных файлов: .ts, .html, .css и т.п.
+
+Минимальный проект на Angular:
+
+ Файл компонента src/my-component.ts
+
+ import { Component } from "@angular/core";
+ @Component({
+   selector: "my-app",
+   standalone: true,
+   imports: [],
+   template: `<h1>Добро пожаловать {{name}}!</h1>`
+ })
+ export class MyComponent {
+   name = 'Angular'
+ }
+
+ -----------
+
+ Boostrap-файл src/main.ts
+
+ import { bootstrapApplication } from "@angular/platform-browser";
+ import { MyComponent } from "./my-component";
+ bootstrapApplication(MyComponent).catch(e => console.error(e)); 
+
+ -----------
+
+ Главная страница src/index.html
+
+ <!DOCTYPE html>
+ <html>
+   <head>
+     <meta charset="utf-8" />
+     <title>Angular Test</title>
+   </head>
+   <body>
+     <my-app>Загрузка...</my-app>
+   </body>
+ </html>
+
+ -----------
+
+ Файл package.json
+
+ { 
+   "name": "helloapp",       
+   "version": "1.0.0",        
+   "scripts": {              
+     "start": "ng serve",
+     "build": "ng build"
+   },
+   "dependencies": {                   // Все модули установятся локально. 
+     "@angular/common": "~20.0.0",     // Если некоторые из этих модулей установлены 
+     "@angular/compiler": "~20.0.0",   // глобально, то они перекроются локальными.
+     "@angular/core": "~20.0.0",
+     "@angular/forms": "~20.0.0",
+     "@angular/platform-browser": "~20.0.0",
+     "@angular/router": "~20.0.0",
+     "rxjs": "~7.4.0",
+     "zone.js": "~0.15.1"
+   },
+   "devDependencies": {
+     "@angular-devkit/build-angular": "~20.0.0",
+     "@angular/cli": "~20.0.0",
+     "@angular/compiler-cli": "~20.0.0",
+     "typescript": "~5.8.0"
+   }
+ }
+
+ -----------
+ 
+ Файл tsconfig.json
+
+ {
+   "compileOnSave": false,
+   "compilerOptions": {
+     "baseUrl": "./",
+     "sourceMap": true,
+     "declaration": false,
+     "downlevelIteration": true,
+     "experimentalDecorators": true,
+     "module": "ES2022",
+     "moduleResolution": "node",
+     "target": "ES2022",
+     "typeRoots": ["node_modules/@types"],
+     "lib": ["ES2022", "dom"]
+   },
+   "files": ["src/main.ts"],
+   "include": ["src/**/*.d.ts"]
+ }
+
+ -----------
+
+ Файл angular.json
+
+ {
+   "version": 1,      // версия конфигурации
+   "projects": {      // настройки для проекта helloapp
+     "helloapp": {
+       "projectType": "application",  // тип проекта (application - это приложение, 
+                                      // которое можно запускать в браузере)
+
+       "root": "",          // папка файлов (пустое значение это корневая папка)
+       "sourceRoot": "src", // папка src-файлов 
+
+       "architect": {       // настройки для команд ng build и ng serve соответсвенно 
+         "build": {
+
+		   // Инструмент построения проекта; build-angular:browser использует webpack 
+           // для сборки проекта, а build-angular:dev-server запускает сервер 
+           // и развертывает на нем скомпилированое приложение
+           "builder": "@angular-devkit/build-angular:browser",
+
+		   "options": {     // параметры для команды build  
+
+             "outputPath": "dist/helloapp",   // путь для скомпилированного приложения
+             "index": "src/index.html",       // путь к главной странице приложения
+             "main": "src/main.ts",           // путь к bootstrap-файлу
+             "polyfills": ["zone.js"],        // путь к файлам полифилов   
+             "tsConfig": "tsconfig.json",  
+
+             "aot": true     // будет ли использоваться предварительная компиляция 
+                             // перед выполнением (Ahead-Of-Time)
+           }
+         },
+         "serve": {
+           "builder": "@angular-devkit/build-angular:dev-server",
+           "options": {
+
+			 // Cсылка на конфигурацию команды build. Т.е. команда serve
+             // использует ту же конфигурацию, что и команда build
+             "buildTarget": "helloapp:build"
+           }    
+         }
+       }
+     }
+   }
+ }
+
+По умолчанию, файлы компилируются в режиме production. Чтобы вручную настроить режим
+компиляции (например для разработки), нужно задать подсекцию configurations для секции build
+и указать необходимый флаг при вызове команды ng build.
+
+ "build": {
+   ...
+   "configurations": {
+     "production": {
+       "optimization": true,     // будет ли использоваться оптимизация
+
+       "outputHashing": "all",   // бедут ли в названиях генерируемых файлов 
+								 // добавляться хеш-значения
+
+       "sourceMap": false,       // будут ли генерироваься sourceMap-файлы
+
+       "namedChunks": false,     // будут ли использ. имена файлов для
+								 // именованных подгружаемых чанков
+
+       "vendorChunk": false,     // будут ли создаваться для сторонних библиотек
+                                 // отдельные файлы
+                   
+       "buildOptimizer": true    // подключает пакет @angular-devkit/build-optimizer
+     },                          // при использовании aot
+     "development": {
+       "optimization": false,
+       "sourceMap": true
+     }
+   }  
+ } 
+
+ ng build --configuration development  -->  билд для разработки
+
+Режим компиляции никак не влияет на процесс разработки, запускаемый командой ng serve.
+Эта команда не будет применять никаких оптимизаций из "production".
+
+-----------------
+
+ОСНОВЫ ANGULAR
+
+
+
