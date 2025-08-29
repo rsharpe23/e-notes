@@ -46,7 +46,7 @@ package.json, tsconfig.json, angular.json.
  })
  export class MyComponent {}
 
- -----------
+ -----
 
  Boostrap-файл src/main.ts
 
@@ -54,7 +54,7 @@ package.json, tsconfig.json, angular.json.
  import { MyComponent } from "./my-component";
  bootstrapApplication(MyComponent); 
 
- -----------
+ -----
 
  Главная страница src/index.html
 
@@ -69,7 +69,7 @@ package.json, tsconfig.json, angular.json.
    </body>
  </html>
 
- -----------
+ -----
 
  Файл package.json
 
@@ -98,7 +98,7 @@ package.json, tsconfig.json, angular.json.
    }
  }
 
- -----------
+ -----
  
  Файл tsconfig.json
 
@@ -120,7 +120,7 @@ package.json, tsconfig.json, angular.json.
    "include": ["src/**/*.d.ts"]
  }
 
- -----------
+ -----
 
  Файл angular.json
 
@@ -176,6 +176,7 @@ package.json, tsconfig.json, angular.json.
    ...
    "configurations": {
      "production": {
+
        "optimization": true,     // будет ли использоваться оптимизация
 
        "outputHashing": "all",   // бедут ли в названиях генерируемых файлов 
@@ -190,7 +191,8 @@ package.json, tsconfig.json, angular.json.
                                  // отдельные файлы
                    
        "buildOptimizer": true    // подключает пакет @angular-devkit/build-optimizer
-     },                          // при использовании aot
+								 // при использовании aot
+     },
      "development": {
        "optimization": false,
        "sourceMap": true
@@ -241,14 +243,14 @@ package.json, tsconfig.json, angular.json.
  })
  export class MyComponent { }
 
- --------------
+ -----
 
  Файл my-coponent.html
 
  <h1>Hello Angular</h1>
  <p>Приложение Angular состоит из компонентов</p>
 
- --------------
+ -----
 
  Файл my-component.css
 
@@ -276,11 +278,15 @@ package.json, tsconfig.json, angular.json.
  * привязка события к методу компонента: <button (click)="addItem($event)">Add</button>
    (информация о событии доступна через объект $event)
 
- * двусторонняя привязка элемента к свойству компонента (т.е. изменение свойства 
-   затрагивает изменение dom-элемента и наоборот): <input type=text [(ngModel)]="myInput">
+ * двусторонняя привязка элемента к свойству компонента (т.е. изменение элемента 
+   затрагивает изменение свойства и наоборот): <input type=text [(ngModel)]="myInput">
 
 Событие элемента может также привязываться через выр-е: on-event="method(arg1, argN)"
+Двусторонняя привязка, как правило, используется с элементами ввода.
 
+
+
+-----------
 Двусторонняя привязка, как правило, используется с элементами ввода. Но чтобы применять ее 
 к полям формы, необходимо импортировать в компонент модуль FormsModule. 
 
@@ -294,8 +300,12 @@ package.json, tsconfig.json, angular.json.
  export class MyComponent {
    myInput = "Tom";
  }
+--------------
 
-В Angular 17 появились новые синтаксические конструкции if/switch/for для управления разметкой шаблона. Раньше вместо них использовались директивы.
+
+
+В Angular 17 появились новые синтаксические конструкции if/switch/for для управления
+разметкой шаблона. Раньше вместо них использовались директивы.
 
 Конструкция if определяется так:
 
@@ -355,7 +365,7 @@ dom-элемент, который связан с элементом колле
  import { MyToolbar } from './my-toolbar';
 
  @Component({
-   selector: 'my-app',
+   selector: 'my-component',
    standalone: true,
    imports: [MyToolbar],
    template: `
@@ -370,7 +380,8 @@ dom-элемент, который связан с элементом колле
    text = 'Мир';
  }
 
-Встроенный элемент <ng-content> позволяет дочернему компоненту получить разметку из родителького компонента. Причем эта разметка будет стилизована теми стилями, 
+Встроенный элемент <ng-content> позволяет дочернему компоненту получить разметку из
+родителького компонента. Причем эта разметка будет стилизована теми стилями, 
 что заданы в родитеском компоненте.
 
  @Component({
@@ -383,7 +394,193 @@ dom-элемент, который связан с элементом колле
    text = 'Angular';
  }
 
+Если требуется передать данные из родительского компонента в дочерний, то родительский
+компонент должен привязать дочернее свойство к своему свойству. При этом дочернее свойство
+должно быть помечено декоратором @Input. Привязывать можно и дочерние сеттеры.
 
-Взаимодействие между компонентами...
+ import { Component, Input } from '@angular/core';
 
+ @Component({
+   ...
+   template: `<p>Возраст: {{userAge}}</p>`  // 24
+ })
+ export class ChildComponent {
+   @Input() userAge = 0;
+ }
+
+ @Component({
+   ...
+   imports: [ChildComponent],
+   template: `<child-component [userAge]="age"></child-component>`
+ })
+ export class ParentComponent {
+   age = 24;
+ }
+
+Если требуется передать данные из дочернего компонента в родительский, то дочерний компонент
+должен испустить событие, а родительский компонент подписаться на него (в шаблоне).
+При этом эмитер события события должен быть помечен декоратором @Output.
+
+ import { Component, EventEmitter, Output } from '@angular/core';
+
+ @Component({
+   ...
+   template: `<button (click)="onClick(24)">Change</button>`,
+ })
+ export class ChildComponent {
+   @Output() onChange = new EventEmitter<number>();
+
+   onClick(value) {
+     this.onChange.emit(value);
+   }
+ }
+
+ @Component({
+   ...
+   imports: [ChildComponent],
+   template: `
+     <child-component (onChange)="onChange($event)"></child-component>
+     <p>Возраст: {{age}}</p>  // 24
+   `,
+ })
+ export class ParentComponent {
+   age = 0;
+
+   onChange(value) { 
+     age = value; 
+   }
+ }
+
+К качестве альтернативы, можно использовать двустороннюю привязку между 
+родительским и дочерним свойством.
+
+ @Component({
+   ...
+   template: `<button (click)="onClick(24)">Возраст</button>`
+ })
+ export class ChildComponent {
+   @Input() userAge = 0;
+   
+   onClick(value) {
+     this.userAge = value;
+   }
+ }
+
+ @Component({
+   ...
+   imports: [ChildComponent],
+   template: `
+     <child-component [(userAge)]="age"></child-component>
+     <p>Возраст: {{age}}</p>  // 24
+   `
+ })
+ export class ParentComponent {
+   age = 0;
+ }
+
+Односторонняя привязка: [otherProp]=myProp (otherProp изменяется при изменении myProp).
+Двусторонняя привязка: [(otherProp)]=myProp (тоже самое, но работает в обе стороны).
+
+
+
+-----------------
+ @Component({
+   ...
+   imports: [FormsModule],
+
+   // ngModel - это свойство input.value, 
+   // ngModelChange - это событие input.change
+
+   template: `<input [ngModel]="userAge" (ngModelChange)="onChange($event)">`
+ })
+ export class ChildComponent {
+   @Input() userAge = 0;
+
+   onChange(value: string) {
+     this.userAge = value;	
+   }
+ }
+
+ @Component({
+   imports: [ChildComponent],
+   template: `<child-component [(userAge)]="age"></child-component> `,
+ });
+ export class ParentComponent {
+   age = 0;
+ }
+
+В примере выше ngModel и userAge имеют одностороннюю привязку, поэтому дополнительно
+обрабатывается событие ngModelChange. Но это можно было бы опустить, если бы 
+ngModel и userAge имели также двустороннюю привязку.
+-----------------
+
+
+
+Жизненный цикл компонента состоит из множества разных методов, каждый из которых вызывается 
+в определенный момент времени. Например сначала вызвается конструктор компонента. После,
+вызывается метод ngOnChanges (при начальной установке свойств или изменении @Input свойств).
+Затем, метод ngOnInit (вызывается один раз, после инициализации всех свойств, но до
+инициализации шаблона). Метод ngOnDestroy вызывается перед тем, как фреймворк удалит
+компонент и т.д. Подробнее здесь https://metanit.com/web/angular2/2.8.php
+
+Большая часть подобных методов определена в отдельных интерфейсах, которые имеют 
+одноименные названия, но без префикса "ng".
+
+ import { Component, OnInit, OnDestroy } from '@angular/core';
+
+ @Component({ ... });
+ export class MyComponent implements OnInit, OnDestroy {
+   constructor() { }  // здесь обычно инициализируются свойства
+   ngOnInit() { }     // здесь выполняются какие-то подготовительные действия
+   ngOnDestroy() { }  // здесь освобождаются ресурсы, удалятся подписки на события и пр.
+ }
+
+Внутри шаблона можно также объявлять переменные. Обычно такие переменные ссылаются на 
+какой-то dom-элемент или компонент. Но их область видимости ограничеватся только шаблоном.
+
+ template: `
+   <span #mySpan>{{text}}</span>  // вместо span мог бы быть и компонент
+   <p>{{mySpan.textContent}}</p>
+ `
+
+Чтобы к шаблонной переменной можно было обращаться из кода, нужно привязать ее 
+к свойству компонента с помощью декоратора @ViewChild.
+ 
+ @ViewChild('mySpan', { static: false })
+ myProp: ElementRef | undefined;
+
+ someMethod() {
+   console.log(this.myProp);  // span
+ }
+
+Первым параметром @ViewChild может быть не только имя шаблонной переменной, 
+но и селектор элемента и даже дочерний компонент (в этом случае селектор будет взят 
+из его декоратора @Component)
+
+Если дочерний компонент, посредством <ng-content>, получает разметку из родительского
+копмопнента, у которой есть шаблонная переменная, то он также может привязать ее к своему
+свойству через декоратор @ContentChild.
+
+ @Component({
+   ...
+   template: `
+     <child-component>
+       <h2 #headerContent>Добро пожаловать!</h2>
+     </child-component>
+   `
+ })
+ export class ParentComponent { }
+
+ @Component({
+   ...
+   template: `<p><ng-content></ng-content></p>`  
+ })
+ export class ChildComponent {
+   @ContentChild('headerContent', { static: false })
+   myProp: ElementRef | undefined;
+ }
+
+-----------------
+
+ДИРЕКТИВЫ
 
