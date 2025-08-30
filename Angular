@@ -727,9 +727,111 @@ ngModel и userAge имели также двустороннюю привязк
 
 -----------------
 
-СЕРВИСЫ И DI
+СЕРВИСЫ
 
-Сервисы - это прослойка, в которую помещают дополнительную логику, не связанную с логикой отображения. Например логгирование, предоставление данных, работа с запросами и т.д.
+Это классы с дополнительной логикой, к которой не относится логика отображения (логику
+отображения лучше реализовывать в компонентах). Например логгирование, работа с данными,
+работа с api. Файл сервиса должен содержать в своем названии подстроку .service
 
-[Например, добавим в папкy src/app новый файл data.service.ts]
+Пример реализации компонента с сервисом:
+
+ class DataService {
+   private data: string[] = ['Tom', 'Bob', 'Sam'];   
+   getData(): string[] { return this.data; }
+ }
+
+ @Component({
+   ...
+   providers: [DataService],  // чтобы внедрить сервис в компонент (с пом. DI),
+   template: `                // нужно добавить его в providers.
+     <ul>
+       @for (item of items; track $index) {
+         <li>{{item}}</li>
+       }
+     </ul>
+   `
+ })
+ class MyComponent {
+   items: string[] = [];
+   constructor(private dataService: DataService) { }
+ 
+   ngOnInit() {
+     this.items = this.dataService.getData();
+   }
+ } 
+
+Если один сервис использут внутри себя другой сервис, то его класс должен быть помечен
+декоратором @Injectable. Но разраработчики Angular рекомендуют помечать @Injectable 
+любой класс сервиса.
+
+ @Injectable
+ class LogService {
+   write(msg: string) { console.log(msg) }
+ }
+
+ @Injectable
+ class DataService {
+   ...
+   constructor(private logService: LogService) { }
+
+   getData(): string[] {
+     this.logService.write('hello!');
+     return this.data;
+   }
+ }
+
+Если компонент использует сервис, который зависит от другого сервиса, то он обязан в своем
+providers указать оба сервиса, даже если не использует второй напрямую.
+
+ @Component({
+   ...
+   providers: [DataService, LogService]
+ })
+ class MyComponent {
+   ...
+   constructor(private dataService: DataService) { }
+ }
+
+Зависимый сервис можно сделать опциональным, пометив его декоратором @Optional(). В этом
+случае, если не указать его в providers, он будет просто недоступен. Но ошибки не будет.
+
+ constructor(@Optional() private logService: LogService) { }
+
+При внедрении сервиса в разные компоненты, каждый компонент будет получать отдельный
+экземпляр сервиса. Но если требуется, чтобы все компоненты работали с одним экземпляром
+сервиса, то его можно внедрить в какой-то родительский компонент. При этом теперь 
+компоненты не должны содержать сервис в своих providers.
+
+ @Component({
+   selector: 'my-component',
+   standalone: true,
+ }) 
+ class MyComponent {
+   constructor(private dataService: DataService) { }
+ }
+
+ @Component({
+   selector: 'other-component',
+   standalone: true,
+ }) 
+ class OtherComponent {
+   constructor(private dataService: DataService) { }
+ }
+
+ @Component({
+   selector: 'app-component'
+   standalone: true,
+   providers: [DataService, LogService]
+   template: `
+     <my-component></my-component>        // каждый из компонентов получит
+     <my-component></my-component>        // один и тот же экземпляр сервиса 
+     <other-component></other-component>
+   `
+ })
+ class AppComponent { }
+
+-----------------
+ 
+РАБОТА С ФОРМАМИ
+
 
