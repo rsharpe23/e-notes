@@ -404,7 +404,7 @@ dom-элемент, который связан с элементом колле
    ...
    template: `<p>Возраст: {{userAge}}</p>`  // 24
  })
- export class ChildComponent {
+ class ChildComponent {
    @Input() userAge = 0;
  }
 
@@ -413,7 +413,7 @@ dom-элемент, который связан с элементом колле
    imports: [ChildComponent],
    template: `<child-component [userAge]="age"></child-component>`
  })
- export class ParentComponent {
+ class ParentComponent {
    age = 24;
  }
 
@@ -427,7 +427,7 @@ dom-элемент, который связан с элементом колле
    ...
    template: `<button (click)="onClick(24)">Change</button>`,
  })
- export class ChildComponent {
+ class ChildComponent {
    @Output() onChange = new EventEmitter<number>();
 
    onClick(value) {
@@ -443,7 +443,7 @@ dom-элемент, который связан с элементом колле
      <p>Возраст: {{age}}</p>  // 24
    `,
  })
- export class ParentComponent {
+ class ParentComponent {
    age = 0;
 
    onChange(value) { 
@@ -458,7 +458,7 @@ dom-элемент, который связан с элементом колле
    ...
    template: `<button (click)="onClick(24)">Возраст</button>`
  })
- export class ChildComponent {
+ class ChildComponent {
    @Input() userAge = 0;
    
    onClick(value) {
@@ -529,7 +529,7 @@ ngModel и userAge имели также двустороннюю привязк
  import { Component, OnInit, OnDestroy } from '@angular/core';
 
  @Component({ ... });
- export class MyComponent implements OnInit, OnDestroy {
+ class MyComponent implements OnInit, OnDestroy {
    constructor() { }  // здесь обычно инициализируются свойства
    ngOnInit() { }     // здесь выполняются какие-то подготовительные действия
    ngOnDestroy() { }  // здесь освобождаются ресурсы, удалятся подписки на события и пр.
@@ -569,13 +569,13 @@ ngModel и userAge имели также двустороннюю привязк
      </child-component>
    `
  })
- export class ParentComponent { }
+ class ParentComponent { }
 
  @Component({
    ...
    template: `<p><ng-content></ng-content></p>`  
  })
- export class ChildComponent {
+ class ChildComponent {
    @ContentChild('headerContent', { static: false })
    myProp: ElementRef | undefined;
  }
@@ -583,4 +583,153 @@ ngModel и userAge имели также двустороннюю привязк
 -----------------
 
 ДИРЕКТИВЫ
+
+Это классы с директивными метаданными (т.е. помеченные декоратором @Derective).
+Они определяют инструкции, которые используются при рендеринге html.
+
+В Angular есть 3 типа директив:
+
+ * Компоненты - это теже директивы, т.к. декоратор @Component расширяет @Derective 
+   и добавляет ф-ционал по работе с шаблонами;
+
+ * Атрибутивные - изменяют элементы, к которым применяются.
+   Например: ngModel, ngStyle, ngClass и т.п.
+
+ * Структурные - изменяют dom путем добавления, изменения, удаления 
+   каких-то html-вставок. Например: ngFor, ngIf и т.п.
+
+Директива ngClass задает набор css-классов для элемента через привязку объекта.
+Ключи объекта - это названия классов, а значения - true/false.
+
+ import { NgClass } from '@angular/common';
+ 
+ @Component({
+   ...
+   imports: [NgClass],
+   template: `
+     div [ngClass]="{ verdanaFont: true, redColor: isRed }">
+       <p [ngClass]="contentClasses">Hello world</p>
+     </div>
+   `,
+   styles: `
+     .verdanaFont { font-size: 13px; font-family: Verdana; }
+     .redColor { color: red; }
+     .bgLight { color: black; background: white; }
+     .bgDark { color: white; background: black; }
+   `
+  })
+  class MyComponent {
+    isRed: false;
+    contentClasses = { bgLight: true, bgDark: false };
+  }
+
+Директива ngStyle задает набор css-стилей, точно также через привязку объекта.
+Ключи объекта - это названия css-свойств, а значения - собственно значения этих свойств.
+
+ <div [ngStyle]="{ 'font-size': '14px', 'font-family': 'Verdana' }"></div>
+
+Альтернативный вариант: [class.cssClass]="true/false" и [style.cssProp]="cssPropValue"
+
+ <div [class.visibility]="isVisible"></div>
+ <div [style.display]="isVisible ? 'block' : 'none'"></div>
+
+Создание атрибутивной директивы:
+
+ import { Directive, ElementRef, Renderer2 } from '@angular/core';
+
+ @Directive({
+   selector: '[myDir]'  // селектор атрибута, с кот. ассоциируется директива
+   standalone: true,
+   host: {                         // через host можно подписаться на события элемента;
+     '(mouseenter)': 'onEnter()',  // onEnter() вызовется, когда пользователь наведет мышь
+   }                               // на элемент, помеченный атрибутом myDir
+ })                                
+ class MyDirective {
+   constructor(private elemRef: ElementRef, private renderer: Renderer2) {
+
+     // Установка стиля для элемента с атрибутом myDir
+     this.renderer.setStyle(this.elementRef.nativeElement, 'font-weight', 'bold');
+
+     // Альтернативный вариант, без использ. renderer
+     // this.elemRef.nativeElement.style.fontWeight = 'bold';
+   }
+
+   onEnter() { }
+
+   // Вместо host можно сразу пометить метод @HostListener
+   @HostListener('mouseleave') onLeave() { } 
+
+   // Через @HostBinding можно связать css-свойство элемента со значением геттера
+   @HostBinding('style.fontWeight')
+   get fontWeight() { return 'normal'; }
+ }
+
+ @Component({
+   ...
+   standalone: true,
+   imports: [MyDirective],
+   template: `<p myDir>Hello World</p>`  // атрибут myDir сделает шрифт жирным
+ })
+ class MyComponent { }
+ 
+Директиве можно также задавать параметры. Делается это след. способами:
+ 
+ <div myDir hoverSize="16px" ></div>  // первый способ
+
+ // Если параметр задается через квадратные скобки, то его значение 
+ // нужно дополнительно заключать в одинарные кавычки:
+ <div myDir [hoverSize]="'16px'"></div>
+
+Чтобы обратиться к параметрам из класса, нужно создать одноименные свойства, 
+помеченные декоратором @Input.
+
+ @Directive({ ... })
+ class MyDirective {
+   @Input hoverSize = '';
+ }
+
+Если в @Input передать селектор директивы, то параметр можно задать еще проще:
+ @Input('bold') hoverSize = '';  -->  <div [myDir]="'16px'"></div>
+
+Создание структурной директивы:
+
+ import { Directive, Input, TemplateRef, ViewContainerRef } from '@angular/core';
+
+ @Directive({ selector: '[myIf]', standalone: true })
+ class IfDirective {
+   constructor(
+     private templRef: TemplateRef<any>,    // объект для доступа к шаблону
+     private viewCntrRef: ViewContainerRef  // объект рендерера
+   ) { }
+
+   // С пом. входного сеттера получаем из шаблона значение condition
+   @Input set myIf(condition: boolean) {
+     if (condition) {
+       this.viewCntrRef.createEmbeddedView(this.templRef);
+     } else {
+       this.viewCntrRef.clear();
+     }
+   }
+ }
+
+ @Component({
+   ...
+   standalone: true,
+   imports: [IfDirective]
+   template: `
+     <p *myIf="condition">Hello</p>   // атрибут задается через звездочку
+     <p *myIf="!condition">World</p>
+   `
+ })
+ class MyComponent {
+   condition = true;
+ }
+
+-----------------
+
+СЕРВИСЫ И DI
+
+Сервисы - это прослойка, в которую помещают дополнительную логику, не связанную с логикой отображения. Например логгирование, предоставление данных, работа с запросами и т.д.
+
+[Например, добавим в папкy src/app новый файл data.service.ts]
 
