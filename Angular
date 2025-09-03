@@ -1074,20 +1074,8 @@ catchError(). Эта ф-ция принимает колбек, в которо�
    "@angular/router": "~20.0.0"
  }
 
-Маршрутизация в Angular требует указания тега <base> на главной странице.
-
- <!DOCTYPE html>
- <html>
-   <head>
-     ...
-     <base href="/" />  Маршрутизация будет работать относительно адреса в href
-   </head>
-   <body>
-     <app-component></app-component>
-   </body>
- </html>
-
-Сами маршруты и их обработка задаются так:
+Сами маршруты и их обработка задаются так (возможно также понадобиться указать тег <base> 
+в главном html-файле, для установки базового пути всем маршрутам):
 
  import { provideRouter, Routes, RouterOutlet } from '@angular/router';
  
@@ -1216,6 +1204,17 @@ routerLinkActiveOptions и передать ей "exact:true". Теперь дл
 Дочерние маршруты реализуются с помощью свойства children, объекта Route.
 При этом родительский компонент должен также вызывать у себя <router-outlet>.
 
+ сonst routes: Routes = [
+   { 
+     path: 'item',
+     component: ItemComponent,
+     children: [
+       { path: 'details', component: ItemDetailsComponent },
+       { path: 'stat', component: ItemStatComponent },
+     ] 
+   }
+ ];
+
  @Component({
    ...
    imports: [RouterOutlet]
@@ -1225,17 +1224,6 @@ routerLinkActiveOptions и передать ей "exact:true". Теперь дл
    `
  })
  class ItemComponent { }
-
- сonst routes: Routes = [
-   { 
-     path: 'item',               // проверить, будет ли заходить отдельно на /item
-     component: ItemComponent, 
-     children: [
-       { path: 'details', component: ItemDetailsComponent },
-       { path: 'stat', component: ItemStatComponent },
-     ] 
-   }
- ];
 
 
 Guards...
