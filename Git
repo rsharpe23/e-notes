@@ -19,7 +19,7 @@
   git config --global --add difftool.kdiff3.path "C:/Program Files/KDiff3/kdiff3.exe"
   git config --global --add difftool.kdiff3.trustExitCode false
 
-------------------------------------------------------------------------------------
+---------------------
 
 Первоначальная инициализация:
   git init
@@ -133,4 +133,7 @@
   git remote set-url origin https://username:token@githug.com/username/repository.git
   (также это можно сделать вручную, в файле .git/config)
 
+---------------------
+
+Чем отличается merge от rabase?
 
