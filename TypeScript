@@ -339,6 +339,9 @@ class Admin extends User {
     this.area = 'web-site';
   }
 
+  // Начиная с версии TS 4.3 при переопределении метода 
+  // нужно добавлять модификатор override
+
   print() {
     super.print();  -->  вызов базового метода
     console.log(${this.area} moderated by ${this.getInfo()});
