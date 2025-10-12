@@ -6,7 +6,12 @@
 
 После создания эл-та, необходимо зарегистрировать его с пом. customElements.difine():
 
- class MyElement extends HTMLElement {};
+ class MyElement extends HTMLElement {
+   connectedCallback() {
+     this.innerHtml = '<h1>Hello!</h1>';
+   }
+ }
+
  customElements.define('my-element', MyElement);
 
 Имена пользовательских эл-тов должны содержать дефис:
