@@ -489,21 +489,23 @@ import(modulePath).then(obj => alert(obj.default));
 
 <script src="es-module-shims.js"></script>
 <script type="importmap">
-{
-  "imports": {
-    "lodash": "/node_modules/lodash-es/lodash.js",   // доступ к lodash.js
-    "lodash/": "/node_modules/lodash-es/",           // доступ к доп. файлам
-    "lodash/util": "/node_modules/lodash-es/util.js" // доступ к доп. конкетному файлу
-    "vue": "https://www.unpkg.com/vue.esm.js"        // доступ к файлу из cdn
+  {
+    "imports": {
+      "lodash": "/node_modules/lodash-es/lodash.js",   // доступ к lodash.js
+      "lodash/": "/node_modules/lodash-es/",           // доступ к доп. файлам
+      "lodash/util": "/node_modules/lodash-es/util.js" // доступ к доп. конкетному файлу
+      "vue": "https://www.unpkg.com/vue.esm.js"        // доступ к файлу из cdn
+    }
   }
-}
 </script>
 
-import _ from "lodash";
-import fp from "lodash/fp.js";
-import util from "lodash/util";
+<scirpt type="module">
+  import _ from "lodash";
+  import fp from "lodash/fp.js";
+  import util from "lodash/util";
+</script>
 
-Импортмап можно подключить с пом. src, а также создавать динамически, через JS.
+Импортмап можно подключить с помощью src, а также создавать динамически, через JS.
 <script type="importmap" src="import-map.importmap"></script>
 
 ---------------------------------------------
