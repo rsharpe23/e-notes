@@ -1,5 +1,6 @@
 БАЗОВЫЙ SVELTE
 
+Svelte - это компонентный фреймворк, предназначенный для реализации только UI приложения.
 Компонент в Svelte - это переиспользуемый блок кода, который инкапсулируют HTML, 
 CSS и JavaScript в одном .svelte файле.
 
@@ -473,7 +474,7 @@ Svelte имеет встроенные реактивные классы: Map, S
 	   {#snippet row(d)} ... {/snippet} 
 	 </FilteredList>
 
-Кроме этого, любой HTML внутри тега также превращается в специальный снипет children.
+Кроме этого, любой HTML внутри тега превращается в специальный снипет children.
 
 	 <FilteredList data={colors}>
 	   <header> ... </header>
@@ -705,4 +706,77 @@ Cледует избегать прослушивания событий mouseen
 -----------------------
 
 БАЗОВЫЙ SVELTEKIT
+
+SvelteKit - это метафреймворк, предназначенный для реализации полноценного production
+приложения. Он решает такие задачи, как: маршрутизация, SSR, data fetching, service workers,
+интеграцию с TS, prerendering, SPA, library packaging, production builds, дейплой и др.
+
+По умолчанию, SvelteKit приложение является server-rendered.
+В качестве сборщика используется Vite.
+
+SvelteKit использует маршрутизацию на основе файловой системы. Это означает, что маршруты
+определяются через каталоги. Корневой папкой маршрутов является src/routes. 
+Страница маршрута задается в файле +page.svelte.
+
+	 src/
+	   routes/
+
+		 about/
+		   +page.svelte   // соответсвует маршруту "/about"
+
+		 +page.svelte     // соответсвует маршруту "/"
+     
+Несмотря на то, что приложение рендерится на стороне сервера, переход на страницу и обратно
+осуществляется без перезагрузки в браузере.
+
+Макет страницы следует помещать в файл +layout.svelte. Он автоматически применяется к тому
+маршруту, в папке которого находится, а также ко всем дочерним маршрутам.
+
+	 about/
+	   +page.svelte
+
+	 +layout.svelte   // применится и к +page.svelte, и к about/+page.svelte
+	 +page.svelte
+
+Чтобы создать маршрут с динамическим параметром, нужно использовать папку 
+с квадратными скобками (что означает маршрут, разделенных символом "x" - [bar]x[baz] ?). 
+
+	 blog/
+	   [slug]/            // будет соответствовать любому параметру для /blog
+		 +page.svelte     // т.е. "/blog/one", "/blog/hello", "/blog/asdsa" и т.п.
+
+Для загрузки данных с сервера используется функция load, которая определяется в файле +page.server.js. Чтобы получить данные в компоненте страницы, нужно использовать проп data.
+
+	Файл src/routes/blog/+page.server.js
+
+	 import { posts } from './data.js';
+
+	 export const load = () => {
+	   return {
+		 summaries: posts.map((post) => ({
+		   slug: post.slug,
+		   title: post.title
+		 }))
+	   };
+	 };
+
+	Файл src/routes/blog/+page.svelte
+
+	 <script>
+	   let { data } = $props();
+	 </script>
+
+	 <h1>blog</h1>
+
+	 <ul>
+	   {#each data.summaries as { slug, title }}
+		 <li><a href="/blog/{slug}">{title}</a></li>
+	   {/each}
+	 </ul>
+
+Подобно тому, как +layout.svelte создают общую разметку для всех дочерних маршрутов,
++layout.server.js загружает общие данные для всех дочерних маршрутов, избавляя от
+необходимости повторять каждый раз +page.server.js
+
+Headers and cookies...
 
