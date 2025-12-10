@@ -675,5 +675,76 @@ take(), takeWhile().
 
 ОБРАБОТКА ИСКЛЮЧЕНИЙ
 
+Реализуется с пом. блоков try..on..catch..finally
+Блок on обрабатывает конкретное исключение, а catch - все исключения.
+Блок finally выполняется в любом случае, даже если исключение не произошло.
+
+ try {
+   int x = 9 / 0;
+   print(x);
+ } 
+ catch (e, s) {
+   print("Возникло исключение: $e");
+   print("Стек: $s");
+ } 
+ finally {
+   print("Освобождение ресурсов");
+ }
+
+В Dart исключения деляется на 2 типа: Exception и Error. Exception - представлюет собой
+ситуации, которые нельзя обнаружить или спрогназировать на уровне кода. Ошибки, наоборот,
+представляю собой ситуации, которые можно проверить на уровне кода.
+
+Блок on может принимать либо Exception, либо Error.
+
+ try {
+   int x = 9 / 0;
+   print(x);
+ } 
+ on IntegerDivisionByZeroException {
+   print("Обработка исключения IntegerDivizionByZeroException");
+ }
+ catch (e) {
+   print("Обработка всех остальный исключений");
+ } 
+
+Блок on и catch можно объединить:
+
+ try {
+   ...
+ }
+ on IntegerDivisionByZeroException catch(e) {
+   ...
+ }
+
+Встроенные типы исключений: 
+
+DeferredLoadException, FormatException, IntegerDivisionByZeroException, IOException,
+FileSystemException, PathNotFoundException, HttpException, RedirectException,
+ProcessException, SignalException, SocketException, StdinException, StdoutException
+TlsException, CertificateException, HandshakeException, WebSocketException,
+IsolateSpawnException, TimeoutException, NullRejectionException, OSError.
+
+Встроенные типы ошибок:
+
+ArgumentError, IndexError, RangeError, AssertionError, AsyncError, sonUnsupportedObjectError,
+JsonCyclicError, NoSuchMethodError, OutOfMemoryError, RemoteError, StackOverflowError,
+StateError, TypeError, UnimplementedError, UnsupportedError, ConcurrentModificationError.
+
+Чтобы выпросить исключение, используется оператор throw:
+
+ void setAge(int age) {
+   if (age < 1 || age > 150) {
+     throw Exception("Недопустимый возраст");
+   }
+   _age = age;
+ }
+
+Чтобы реализовать собсвенный класс исключения достаточно определить в нем
+поле value и метод toString().
+
+------------------
+
+АСИНХРОННОСТЬ И МНОГОПОТОЧНОСТЬ
 
 
