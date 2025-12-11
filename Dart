@@ -1118,4 +1118,115 @@ Http-сервер - это программа, которая принимает
 
 РАЗНОЕ
 
+Оператору switch можно передавать константы в качестве ключей:
+
+ сonst int a = 1, b = 2;
+ 
+ switch (num) {   
+   case a: 
+     print("num = a");
+   case b: 
+     print("num = b");
+   default:
+     print("num is undefined");
+ }
+
+Если оператор switch возвращает значения, то его можно сократить:
+
+ switch (lang) {             return switch (lang) {
+   case "en":                  "en" => "Hello",
+     return "Hello";           "ru" => "Привет",
+   case "ru":                  _ => "Hallo"
+     return "Привет";        };
+   default: 
+     return "Hallo";
+ };
+
+Оператор switch позволяет удобно сравнивать свое значение. Поддерживаются все стандратные
+операции сравнения: == != < > <= >=, а также логические операции: && и ||
+
+ return switch (num) {
+   <= 0 => 0,                    // если num <= 0, то вернет 0
+   < 5000 => num * 0.5,          // если num < 5000, то вернет num * 0.5
+   > 100 && < 200 => num * 0.1   // если num > 100 && num < 200, то вернет num * 0.1  
+   _ => num * 2                  // в остальных случаях вернет num * 2 
+ }
+
+Оператор switch позволяет сопоставлять свое значение со списками, кортежами, 
+объектами и словарями (можно в сокращенной форме):
+
+ switch (value) {   
+
+   case [1, 2, 3]: return 1;     // если value - это массив [1, 2, 3], то вернет 1
+   case [1, 2]: return 2;        // если value - это массив [1, 2], то вернет 2
+
+   case [2, _, 5] return 3;  // если value - это массив из 3х эл-тов, где первый и последний
+                             // это 2 и 5, а между ними произвольное значение, то вернет 3
+
+   case [_, _] return 4;     // value должен соответ. массиву из 2х произвольных значений 
+
+   case [2, ..., 5] return 5;   // value должен соответ. массиву, где первый и последний
+                                // эл-ты это 2 и 5, а между ними произвольное кол-во эл-тов
+
+   case _: return 5;    // если value не соответ. ни одному кейсу.
+ }                            
+
+ switch (value) {
+   case ("good", "morning"): return "good";
+   case ("good", _): return "hello";  // второй элемент value не важен
+   case _: return "hi";
+ }
+
+ switch (value) {
+   case { "name": "admin" }: return "hello admin";   // если в value есть name = "admin"
+   case { "name": var name }: return "hello $name";  // если в value есть ключ name
+ }
+
+ switch (value) {
+
+   case Person(name: "Tom", age: > 18): return 1;  // если в value св-во name = "Tom"
+                                                   // а св-во age больше 18
+   case Person(name: "Tom"): return 2;
+   case Person(name: var pName): return 3;  // просто извлекает св-во name в переменную pName
+ }
+
+ switch (value) {
+   case String(length: > 10): return 1;  // если value - это строка более 10 символов
+   case _: return 2;
+ }
+
+Dart также поддерживает деструктуризацию:
+
+ // Деструктуризация кортежа
+
+ var person = ("Sam", 29);
+ var (name, age) = person; 
+ 
+ var age = 0;
+ (_, age) = person;
+
+ var (name: myName, age: myAge) = (name: "Sam", age: 29)
+ myName  -->  "Sam"
+
+ int a = 25;
+ int b = 50;
+ (a, b) = (b, a);  -->  a = 50, b = 25
+
+ // Деструктуризация списка
+
+ var nums = [1, 2, 3, 4, 5, 6, 7, 8];
+ var [a, b, _, c, ..., d] = nums;  -->  a = 1, b = 2, c = 4, d = 8
+ vat [..., a, b] = nums;           -->  a = 7, b = 8
+
+ // Деструктуризация объекта
+
+ class Person {
+   String name;
+   int age;
+   Person(this.name, this.age);
+ }
+
+ var person = Person("Tom", 38);
+ var Person(name: userName, age: userAge) = person;
+ userName  -->  "Tom"
 
