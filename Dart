@@ -747,7 +747,7 @@ StateError, TypeError, UnimplementedError, UnsupportedError, ConcurrentModificat
 
 АСИНХРОННОСТЬ И МНОГОПОТОЧНОСТЬ
 
-Приложение на Dart по умолчанию является однопоточным, но в нем есть асинхронность, 
+Dart по умолчанию является однопоточным, но в нем есть асинхронность, 
 которая реализуется за счет Event Loop.
 
 Для определения асинхронной задачи используется класс Future. Он представляет собой результат
@@ -862,5 +862,260 @@ MiscoTask Queue или Event Queue.
 ------------------
 
 ФАЙЛОВАЯ СИСТЕМА
+
+Работа с файловой системой, а также с системой ввода/вывода становится доступной 
+после подключения пакета dart:io
+
+Для работы с каталогами используется класс Directory:
+
+ var dir = Directory("hello");
+ dir.path -->  "hello"
+
+ Directory.current     // путь к текущей папке
+ Directory.systemTemp  // каталог для временных файлов в текущей ОС
+
+ dir.create()                 // создает каталог hello
+ dir.create(recursive: true)  // создает вложенный каталог, например: hello/world
+
+ dir.list()          // возвращает содержимое папки
+ dir.exist()         // возращает true если папка существует
+ dir.rename("work")  // переименование папки  
+
+ dir.delete()  // удаляет папку (если передать true, то удалятся и вложенные папки)
+ dir.stat()    // информацию о папке (размер, время изменения и пр.)
+
+Для работы с файлами используется класс File:
+
+ var file = File("hello.txt");
+ file.path           -->  "hello.txt"
+ file.absolute.path  -->  "C:\dart\hello.txt"
+
+ file.create()                 // создает файл hello.txt
+ file.create(recursive: true)  // создает файл с указанными вложенными каталогами
+
+ file.copy("world.txt")     // копирует hello.txt в world.txt
+ file.rename("hello2.txt")  // переименование файла
+
+ file.exists()  // возращает true если файл существует
+ file.delete()  // удаляет файл (результатом является удаленный файл)
+ file.stat()    // информация о файле
+ file.length()  // размер файла в байтах
+
+Методы Directory и File (create, delete и пр.) возвращают объект Future или Stream, 
+поэтому с ними можно работать через await.
+
+Примеры чтения и записи в файл:
+
+ import "dart:io";
+
+ void main() async {
+   var file = File("hello.txt");
+
+   await file.writeAsString("hello");  
+   await file.writeAsString("world", mode: FileMode.append);  // дозапись
+
+   var lines = await file.readAsLines();  // асинхронно считывает файл и возвращает
+   for (var line in lines) {              // список строк (кот. заканчиваются символом \n)
+     print(line);
+   }
+   
+   String content = await file.readAsString();      // считывает файл в одну строку
+   String content = await file.readAsStringSync();  // синхронно считывает файл в строку
+ } 
+
+Чтение и запись в файл бинарных данных:
+
+ File file = File("data.bin");
+
+ List<int> bytes = utf8.encode("hello world");
+ await file.writeAsBytes(bytes);
+
+ List<int> content = await file.readAsBytes();
+ print(utf8.decode(content));
+
+Если нужно работать с большими файлами, то это лучше делать по кусочкам, используя потоки.
+Размер каждого кусочка зависит от конкретной системы, но обычно это 65536 байт.
+
+Для работы с файловым потоком, его нужно сначала открыть, а после окончания работы - 
+закрыть (чтобы освободить все связанные ресурсы системы).
+
+ var file = File("hello.txt");
+
+ IOSink sink = file.openWrite();  // открывает поток для записи (если нужна дозапись, 
+ sink.write("hello world\n");     // то нужно передать параметр mode: FileMode.append)
+
+ await sink.close();              // закрывает поток
+
+При записи объектов, будет записываться их строковое представление, 
+определяемое методом toString().
+
+Пример чтения данных по кускам из файлового потока:
+
+ Stream<List<int>> stream = file.openRead();  // открывает поток для чтения
+ stream.listen((data) => print(data))  		  // получение порции данных (в байтах)
+
+Метод listen() может принимать 3 колбека: для чтения данных, для обработки ошибок 
+и для действия по завершению ф-ции:
+
+ stream.listen(onData, onError, onDone);
+
+Вместо метода listen() можно использовать цикл for..in.
+Чтобы преобразовать порцию данных в строку используется метод utf8.decode().
+
+ try {
+   await for (var data in stream) {
+     print(utf8.decode(data));
+   }
+ } on Exception catch (error) {
+   print(error);
+ }
+
+Для автоматического преобразования данных можно использовать метод stream.transform():
+
+ await for (var data in stream.transform(utf8.decoder)) {
+   print(data);
+ }
+
+ // Альтернативный вариант
+ stream.transform(utf8.decoder).listen((data) => print(data));
+
+Чтобы считывать или записывать пользовательский объект в формате JSON, нужно чтобы его класс
+имел методы toJson() и/или fromJson(). После этого, такой объект можно передавать в ф-цию
+json.encode() и json.decode() (доступны после подключения пакета dart:convert) 
+и получать строковое представление в этом формате.
+
+ class Person {
+   String name;
+   int age;
+
+   Person(this.name, this.age);
+   factory Person.fromJson(Map<String, Object?> json) {
+     return Person(json["name"] as String, json["age"] as int);
+   }
+
+   Map toJson() => { "name": name, "age": age };
+ }
+
+ File file = File("person.json");
+
+ Person p = Person("Tom", 38);
+ await file.writeAsString(json.encode(p));
+ 
+ var data = await file.readAsString();
+ var jsonMap = json.decode(data);
+ Person p2 = Person.fromJson(jsonMap);
+
+Пример работы со списком json-данных:
+
+ var people = [Person("Tom", 38), Person("Bob", 42), Person("Sam", 25)];
+ await file.writeAsString(json.encode(people));
+
+ var data = await file.readAsString();
+ var jsonArr = json.decode(data);
+
+ var people2 = [];
+ for (var item in jsonArr) {
+   people.add(Person.fromJson(item));
+ }
+
+------------------
+
+HTTP
+
+Для работы с http, используется также пакет dart:io
+
+Http-сервер - это программа, которая принимает запросы и возвращает ответы по протоколу http.
+Для создания сервера используется метод bind(), класса HttpServer. Он принимает 2 пар-ра:
+адрес и порт (на которых будет запущен сервер). 
+
+Адрес может быть либо строкой, либо объектом класса InternetAdress.
+Этот класс имеет 4 статич. свойства:
+
+ anyIPv4 - любой IP-адрес версии 4;
+ anyIPv6 - любой IP-адрес версии 6;
+
+ loopbackIPv4 - любой локальный IP-адрес 4й версии, доступный только 
+  для запросов с текущ. компьютера;
+
+ loopbackIPv6 - такой же адрес, но 6й версии;
+
+Каждая сетевая программа, прослушивающая запросы, запускается на определенном порту. Порт -
+это адрес программы на компьютере. Он принимает значение от 0 до 65653. Если задан 0, 
+то система выбирает временный порт.
+
+ // Сервер будет доступен по адресу http://localhost:8888
+ // Запросы прослушиваются через метод forEach(void action(HttpRequest req)) 
+ // либо в цикле await for (var req in server) { }
+
+ var server = await HttpServer.bind(InternetAddress.anyIPv6, 8888)
+
+ await server.forEach((HttpRequest req) {     
+   var res = req.response; 
+   res.headers.add("secret", "23");  // добавление заголовков в ответ  
+   res.write("hello");               // запись некоторых данных в ответ
+   res.close();                      // закрытие и отправка ответа
+ });
+
+Для установки заголовком можно также использовать метод set(). А для установки самых частых
+заголовком определены отдельные свойства: contentType, contentLength, expires, date и др.
+
+ res.headers.set("My secret", 23);
+
+ // Здесь text - это основной тип содержимого, 
+ // а plain - второстепенный тип содержимого
+
+ res.headers.contentType = ContentType("text", "plain");  
+
+Названия стандартных заголовком можно брать из класса HttpHeaders:
+
+ res.headers.add(HttpHeaders.contentTypeHeader, "text/plain; charset=utf-8");
+ res.headers.add(HttpHeaders.dateHeader, DateTime.now());
+
+Заголовки - это метаинформация для сетевых данных. Они нужны принимающей стороне для
+правильной интерпритации того, что ей приходит. Когда клиент создает запрос, то он
+устанавливает в нем заголовки запроса. А когда сервер создает ответ, то он устанавливает 
+в нем заголовки ответа (ответ - это часть запроса, которая на сервере просто заполняется).
+
+ var res = req.response;
+
+ // Чтобы клиент (т.е. браузер) мог интепритировать полученные данные 
+ // как код html, устанавливает соответсвующий contentType.
+
+ res.headers.contentType = ContentType("text", "html");
+ res.write("<h1>hello world</h1>");
+
+ res.close();
+
+Класс HttpRequest имеет следующие свойства:
+ headers - заголовки запроса;
+ contentLength - длина тела запроса (тело - это данные от клиента);
+ method - метод запроса: GET, POST, PUT, PATCH, DELETE;
+ cookies - куки клиента (временная информация, связанная с тем или иным доменом);
+ requestedUri - запрошенный адрес;
+ response - ответ, который должен заполниться на сервере;
+ uri - запрошенный путь;
+
+Для взаимодействия с http-сервером со стороны клиента, используется класс HttpClient.
+Для создания запроса (объекта HttpClientRequest) используются методы клиента: get(), post() 
+и др. Отправка запроса происходит при вызове его метода close(), который также возвращает
+ответ (объект HttpClientRespone, представляющий из себя поток для чтение набора байтов).
+
+ var client = HttpClient();
+
+ try {
+   HttpClientRequest req = await client.get("localhost", 8888, "/");
+
+   HttpClientResponse res = await req.close();    // отправка запроса
+   var data = await res.transform(utf8.decoder);  // преобразование байтов в символы
+
+   print(data.join());  // объединение символов в строку
+ }
+ finally {
+   client.close();  // завершение работы клиента
+ }
+
+------------------
+
+РАЗНОЕ
 
 
