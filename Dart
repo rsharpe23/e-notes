@@ -1234,3 +1234,8 @@ Dart также поддерживает деструктуризацию:
  var Person(name: userName, age: userAge) = person;
  userName  -->  "Tom"
 
+
+НАПИСАТЬ ПРО IMPORT И EXPORT (немного информации есть по ссылке ниже)
+https://education.yandex.ru/handbook/flutter/article/flutter-zavisimosti-proekta
+
+
