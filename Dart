@@ -678,6 +678,98 @@ take(), takeWhile().
 
 ------------------
 
+STREAM API
+
+С пом. Streap API осуществляется реактивное программирование. Реактивность строится на
+последовательности асинхронных событий. В Dart такой последовательностью называется Stream.
+
+Примеры создания объекта Stream:
+
+ // С пом. конструктора
+ final stream = Stream.fromIterable([1, 2, 3]);
+ 
+ // С пом. асинхронного генератора.
+ Stream<int> generateStream() async* {
+   int count = 1;
+   while (count <= 5) {
+     yield count++;
+   }
+ }
+ 
+ // С пом. StreamController
+ class StreamProvider {
+   final _controller = StreamController<int>();
+   Stream get stream => _controller.stream;
+
+   void startPushingEvents() {
+     for (int i = 0; i < 20; i++) {
+       _controller.sink.add(i);
+     }
+   }
+
+   void stopPushingEvents() {
+     _controller.close();
+   }
+ }
+
+StreamController напоминает Observable из RxJS. Стандартный конструктор создает контроллер,
+который отдает Single-subscription Stream. Фабричный конструктор StreamController.broadcast()
+создает контроллер, который отдает Broadcast Stream (широковещательный).
+
+Single-subscription Stream характерен следующим:
+
+ 1. У него может быть только один подписчик.
+
+ 2. События складываются в буфер, так что подписчик гарантировано получает 
+    всю очередь, даже если подпишется позже.
+
+Broadcast Stream характерен следующим:
+
+ 1. У него может быть больше одного подписчика.
+
+ 2. События отправляются только активным слушателям в момент вызова методов add(), 
+    addAll(), addError() у объекта Sink, т.к. у такого Steam нет буфера. 
+    Посему события могут быть пропущены.
+
+StreamController должен быть закрыт, если его никто не слушает, 
+чтобы избежать утечек памяти. 
+
+По умолчанию создаются асинхронные контроллеры. Это означает, что каждое событие проходит
+через Event Loop как микротаск, что вызывает небольшую задержку.
+
+Cинхронный контроллер создается с пом. параметра sync. Он отправляет события всем подписчиком
+моментально, а не через микротаск. Это быстрее, но может привести проблеме, когда подписчик
+еще не готов их получать. Из-за этого события могут теряться.
+
+Обработка событий реализуется через метод stream.listen() или цикл for (await in).
+Цикл будет итерироваться по событиям объекта Stream.
+
+ // Обработка с пом. цикла
+
+ Future<String> fn(Stream<Srtring> stream) async* {
+   final sb = StringBuffer();
+   await for (final str in stream) {
+     sb.write(str);
+   }
+   return sb.toString();
+ }
+
+ // Обработка с пом. метода listen() с колбеками
+ // Параметр cancelOrError = true закрывает подписку после первой ошибки
+ // Колбек onData вызывается каждый раз, когда StreamSubscription 
+ // обрабатывает событие Stream. Колбек onDone вызывается при закрытии Stream
+
+ StreamSubscription<T> createStreamSubscr<T>(Stream<T> stream) {
+   return steam.listen(onData, onError, onDone, cancelOnError: true);
+ }
+
+Объект StreamSubscription - это подписка. Ее можно поставить на паузу, восстановить 
+и закрыть (методы pause(), resume(), cancel()).  
+
+Для более сложных сценариев используйте пакет rxdart.
+
+------------------
+
 ОБРАБОТКА ИСКЛЮЧЕНИЙ
 
 Реализуется с пом. блоков try..on..catch..finally
@@ -1413,10 +1505,26 @@ final class, sealed class. Базовый класс можно наследов
  Isolate.run(() => slowOperation(value));
  compute(slowOperation, value);
 
-В Dart есть Stream API, который позволяет писать реактивный код.
+Экспорт функционала выполняется так (обычно из одного файла):
 
-НАПИСАТЬ ПРО IMPORT И EXPORT
-https://education.yandex.ru/handbook/flutter/article/flutter-zavisimosti-proekta
+ export 'src/file.dart';               // экспорт всего ф-ционала из file.dart
+ export 'src/file.dart' show MyClass;  // экспорт только класса MyClass   
+ export 'src/file.dart' hide MyClass;  // экспорт всего, кроме класса MyClass
 
-2.8. Dart: Stream API и реактивное программирование...
+Импорт функционала осуществляется так:
 
+ import 'scr/file.dart';               // импорт всего ф-ционала из file.dart
+ import 'src/file.dart' show MyClass;  // импорт только класса MyClass
+ import 'src/file.dart' hide MyClass;  // импорт всего, кроме класса MyClass
+
+ import 'src/file.data' as ns;   // импорт ф-ционала, к которому потом можно обращаться
+                                 // через префикс ns. ns.MyClass и т.д.
+ 
+ import 'package:my_lib'             // импорт всего из библиотеки my_lib
+ import 'package:my_lib/file.dart';  // импорт всего из file.dart, библиотеки my_lib
+
+Библиотеки обычно содержат всего один файл экспорта, который находится в корневом каталоге.
+Помимо экспорта, в этом файле также задается запись: library my_lib; Это своего рода тег 
+или идентификатор библиотеки (название должно совпадать с названием файла). Благодаря нему 
+к библиотеке можно обращаться через 'package:'
+ 
