@@ -547,5 +547,102 @@ Flutter работает по другому. Для отрисовки UI он 
 Flutter позволяет делать очень многое из коробки. Поэтому прежде чем делать свой виджет,
 нужно поискать сначала наиболее подходящий среди готовых https://docs.flutter.dev/ui/widgets
 
-2.12. Виджеты: идентификатор key...
+Ключи виджетов используется при построении дерева виджетов, чтобы фреймворк мог 
+отличать друг от друга виджеты с одинаковым типом.
+
+Когда у родительского виджета есть несколько дочерних Stateful-виджетов с одинаковым типом,
+то этим виджетам нужно задавать ключ (иначе при перемещении этих виджетов или удалении 
+одного из них, Flutter не сможет определить какие именно виджеты были затронуты).
+
+ class ColorBlock extends StatefulWidget {
+   final Color color;
+   const ColorBlock({ required this.color, Key? key }): super(key: key);
+
+   @override
+   State<ColorBlock> createState() => _ColorBlockState();
+ }
+
+ class _ColorBlockState extends State<ColorBlock> {
+   @override
+   Widget build(BuildContext ctx) {
+     return Container(color: widget.color, width: 100.0, height: 100.0);
+   }
+ }
+
+ class MyWidget extends StatelessWidget {
+   @override
+   Widget build(BuildContext ctx) {
+     return Column(
+
+       // Здесь фактически используется ValueKey 
+       // Вместо ColorBlock может быть список из Padding и др.
+       
+       children: [
+         ColorBlock(
+           key: Key(Random().nextInt().toString())
+           color: Colors.primaries(1)
+         ),
+         ColorBlock(
+           key: Key(Random().nextInt().toString())
+           color: Colors.primaries(2)
+         ),
+         ColorBlock(
+           key: Key(Random().nextInt().toString())
+           color: Colors.primaries(3)
+         ),
+       ]
+     ) 
+   }
+ }
+
+Ключи имеют две иерархии: LocalKey и GlobalKey. Базовым классом является Key.
+
+Особенность локальных ключей в том, что они должны быть уникальны для всех виджетов 
+с одним родителем. Типы локальных ключей:
+
+ ValueKey<T> - уникальность ключа определяется по значению объекта T. Это значит, 
+   что для работы ключа нужно переопределять метод hashCode и оператор ==
+
+ ObjectKey - уникальность ключа определяется по ссылке на объект;
+ UniqueKey - уникальный ключ, который равен только самому себе;
+
+Особеннось глобальных ключей в том, что они должны быть уникальны 
+для всего приложения. Типы глобальных ключей:
+
+ LabeledGlobalKey - глобальный аналог UniqueKey;
+ GlobalObjectKey - глобальный аналог ObjectKey;
+
+Глобальные ключи использоваться для доступа к State/BuildContext у Stateful-виджета из любой
+точки приложения или когда нужно поменять родителя у виджета (например при изменении 
+верстки с portrait ориентации в landscape).
+
+ class MyWidgetState extends State<MyWidget> {
+   final _columnKey = GlobalKey();
+ 
+   @override
+   Widget build(BuildContext ctx) {
+     return OrientationBuilder(builder: (_ctx, orientation) {
+       return Scaffold(
+         
+         // Без использования _columnKey, при повороте экрана 
+         // заново пересоздавалось бы все поддерево body
+
+         body: orientation == Orientation.portrait 
+           ? Column(
+         	   key: _columnKey,
+               children: _colorBlocks,
+             ),
+           : Padding(
+               padding: const EdgeInsets.all(8.0),
+               child: Column(
+         	     key: _columnKey,
+                 children: _colorBlocks,
+               )
+             ),
+       );
+     });
+   }
+ }
+
+2.13. Виджеты: лейаут
 
