@@ -782,6 +782,8 @@ OrientationBuilder, который построен на базе LayoutBuilder.
  
 --------------
 
+РАБОТА С СЕТЬЮ
+
 Протокол HTTP был изначально задуман для передачи HTML-документов (поэтому он имеет схожую 
 с HTML структуру формирования данных - headers, body и пр.) Но позже получил широкое
 применение для обмена произвольными данными (текста, картинок, видео и др.)
@@ -826,6 +828,8 @@ build_runner. Процесс преобразования выполняется
 Вторая является кроссплатформенной оберткой.
 
 --------------
+
+ХРАНЕНИЕ ДАННЫХ
 
 Пакет path_provider предоставляет кроссплатформенный доступ к местам, где хранятся данные
 приложения. Одним из таких мест является документы приложения. В этих документах находятся
@@ -876,6 +880,8 @@ encrypt/flutter_string_encrypt
 
 --------------
 
+ОТЛАДКА
+
 Логи, выводимые с пом. print(), также происходят и в релизных сборках. Это может быть
 небезопасно, поскольку в них может оказаться чувствительная информация.
 
@@ -908,8 +914,6 @@ encrypt/flutter_string_encrypt
 Для логирования есть также несколько библиотек: logger (самая популярная) и logging.
 Logger позволяет более удобно выводить информацию, чем стандартный log (в отформатированном
 виде со стек-трейсом и прочим; возможно можно настроить, чтобы логи сохранялись в файл).
-
---------------
 
 Для ошибок, которые возникают на уровне Flutter, можно использ. глобальный обработчик:
 
@@ -952,5 +956,145 @@ Dart, т.е. через throw) можно использовать PlatformDispa
 
 --------------
 
-2.19. Project: темизация
+ТЕМИЗАЦИЯ
+
+Чтобы задать тему нужно установить параметр theme, в виджете MaterialApp. Этот параметр
+принимает объект ThemeData, который уже содержит какие-то стили.
+
+ MaterialApp(theme: ThemeData())
+
+Для установки собственных стилей можно применять разные подходы:
+
+Если пользовательский виджет имеет всего немного стилей, то их можно передавать напрямую,
+через конструктор. Если виджет имеет много стилей, то их можно выносить в отдельный класс.
+Например для виджета Clock, стили могут определяться в классе ClockStyle. 
+
+Если один и тот же класс стилей применяется несколько раз, в разных виджетах, то его можно
+передавать через пользовательский Theme-виджет (в этом случае класс может заканчиваться 
+не на *Style, а на ThemeData, чтобы в именовании соответствовать стандартному ThemeData).
+
+ class ClockTheme extends InheritedWidget {
+   final ClockThemeData data;
+   
+   // maybeof() отличается от of() тем, что возвращает nullable-тип
+
+   static ClockThemeData? maybeOf(BuildContext ctx) {
+     final theme = ctx.dependOnInheritedWidgetOfExactType<ClockTheme>();
+     return theme?.data;
+   }
+   ...
+ }
+
+ class ClockThemeData {
+   final Color shadowColor;
+   final Color borderColor;
+   final double hourHandWidth;
+   ...
+ }
+
+ class Clock extends StatelessWidget {
+   @override
+   Widget build(BuildContext ctx) {
+     final theme = ClockTheme.maymeof(ctx) ?? ClockThemeData.myDefaultData;
+     final borderColor = theme.borderColor;
+     ...
+   }
+ }
+
+Вместо того, чтобы передавать стили через пользовательский Theme-виджет, стилевой класс 
+можно сделать наследником от ThemeExtension и задавать в параметре extensions, 
+стандартного ThemeData.
+
+ MaterialApp(
+   theme: ThemeData(
+     extensions: [ClockThemeData()]
+   )
+ )
+
+ class ClockThemeData extends ThemeExtension<ClockThemeData> {
+   final Color shadowColor;
+   final Color borderColor;
+   final double hourHandWidth;
+   ...
+
+   // Метод lerp() используется для плавного переключения стилей
+
+   @override
+   ThemeExtension<ClockThemeData> lerp(ThemeExtension<ClockThemeData>? other, double t) {
+     return ClockThemeData(
+       borderColor: Color.lerp(borderColor, other?.borderColor),
+       ...
+     );
+   }
+ }
+
+--------------
+
+НАВИГАЦИЯ
+ 
+Во Flutter есть несколько механизмов для навигации. Самый простой и распространенный
+называется Navigation 1.0. Он реализуется с пом. класса Navigator.
+
+Переход на новый экран выполняется с пом. метода push().
+
+ Navigator.push(
+   context, 
+   MaterialPageRoute(builder: (BuilderContext ctx) => MyPage())
+ )
+
+Возврат к предыдущему экрану происходит с пом. метода pop().
+
+ // Если вызвать на главном экране, то экран станет черным, т.к. в приложении 
+ // больше не будет открытых экранов (стек навигации станет пустым)
+
+ Navigator.pop(context);
+
+Другие методы Navigator:
+ pushNamed() - переходит на указанный экран из таблица маршрутизации;
+ pushReplacement() - заменяет текущий экран указанным (в стеке навигации);
+ pupUntil() - возвращается на указанный экран;
+
+Чтобы создать маршрутные экраны, нужно в MaterialApp установить параметр routes. 
+Ему задается так называемая таблица маршрутизации.
+
+ MaterialApp(
+   initialRoute: '/A',  // определяет начальный экран
+   routes: {
+     '/A': (ctx) => PageA(), 
+     '/B': (ctx) => PageB(), 
+     '/C': (ctx) => PageC(), 
+   },
+ )
+
+ // Теперь навигация можно выполнять так.
+ // Большинство разработчиков используют именно такую 
+ // навигацию (через таблицу маршрутизации)
+
+ Navigator.pushNamed(context, '/B');
+
+При навигации через push(), данные можно передавать прямо в виджет экрана.
+При навигации через pushNamed(), данные передаются через параметр arguments.
+
+ Navigator.pushNamed(context, '/B', arguments: 'hello');
+ 
+Получить данные можно только на открывшемся экране:
+
+ final data = ModalRoute.of(context)?.settings.arguments;
+
+Передать данные можно и при возврате:
+
+ Navigator.pop(context, 'world');
+
+Но чтобы получить эти данные, экран, откуда возвращаются данные, должен быть открыт
+асинхронно, а его возвращаемое значение - записываться в переменную. И как только 
+он закроется, данные станут доступны:
+
+ // При обычном вызове pop(), без данных, он возвращает null. 
+ // Поэтому нужно возвращаемое значение должно быть nullable-типа
+
+ final returnedData = await Navigator.pushNamed<String?>(context, '/B');
+
+--------------
+
+2.21. Project: интернационализация и локализация
 
