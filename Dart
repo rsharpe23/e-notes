@@ -828,7 +828,7 @@ ArgumentError, IndexError, RangeError, AssertionError, AsyncError, sonUnsupporte
 JsonCyclicError, NoSuchMethodError, OutOfMemoryError, RemoteError, StackOverflowError,
 StateError, TypeError, UnimplementedError, UnsupportedError, ConcurrentModificationError.
 
-Чтобы выпросить исключение, используется оператор throw:
+Чтобы выбросить исключение, используется оператор throw:
 
  void setAge(int age) {
    if (age < 1 || age > 150) {
@@ -839,6 +839,8 @@ StateError, TypeError, UnimplementedError, UnsupportedError, ConcurrentModificat
 
 Чтобы реализовать собсвенный класс исключения достаточно определить в нем
 поле value и метод toString().
+
+Чтобы пробросить исключение дальше, используется оператор rethrow.
 
 ------------------
 
