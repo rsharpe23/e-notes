@@ -2,10 +2,10 @@
 
 Версия 19.1
 
-Создание нового проекта:           npx create-react-app my-app
+Создание простого проекта:         npx create-react-app my-app
 Создание проекта с маршрутизацией: npx create-react-router@latest
 Создание проекта на Next.js:       npx create-next-app@latest
-Создание проекта на Expo:          npx create-expo-app     
+Создание нативного проекта:        npx create-expo-app     
 
 Компонент - это элемент пользовательского интерфейса, у которого есть своя логика 
 и представление. Компонент в React представляет из себя ф-цию, возвращающую JSX разметку.
@@ -691,7 +691,7 @@ React Router 6.4+, вместо простого fetch).
    // К этому маршруту можно обратится так: /products/5
    <Route path=":id" element={<Phone />} />
 
-   // Маршрут с необязательным пар-ром
+   // Маршрут с одним необязательным пар-ром
    <Route path=":name?" element={<Product />} />
 
    // Маршрут с двумя пар-рами: /products/apple/ipad/504386 
@@ -704,16 +704,36 @@ React Router 6.4+, вместо простого fetch).
    ...
  };
 
+Если пар-ры задаются в виде строки запроса, то получить их можно через хук useSearchParams()
+Этот хук также возвращает сеттер, с пом. которого можно изменить строку запроса.
+
+ <Routes>
+   <Route path="home/:myquerystr" element={<Home />} />
+ </Routes>
+
+ const Home = () => {
+   // Здесь searchParams - это строка "?name=Bob&age=46"
+   const [searchParams, setSearchParams] = useSearchParams();
+   return (
+     <>
+       <p>{searchParams.get('name')}</p>
+       <p>{searchParams.get('age')}</p>
+     </>
+   );
+ };
+
 Маршрутные ссылки задаются с пом. компонента Link. Путь перехода определяется через атрибут
 to. Кроме этого, есть еще компонент NavLink. Он аналогичен предыдущему, но дополнительно
 имеет активное состояние, которое можно стилизоать через атрибуты className или style 
 (эти атрибуты принимают колбек, в параметрах которого доступно состояние isActive).
 
  const Nav = () => {
+   const productId = 5;
    return (
      <nav>
        <Link to="/">Главная</Link>
        <Link to="/products">Товары</Link>
+       <Link to={`/products/${productId}`}>iPhone</Link>
      </nav>
    );
  }; 
@@ -728,7 +748,26 @@ to. Кроме этого, есть еще компонент NavLink. Он ан
    );
  }; 
 
-Ссылки с параметрами...
+Переадресация выполняется с пом. компонента Navigate. Если необходимо задать параметры, 
+то Navigate можно обернуть в пользовательский компонент и передавать их оттуда.
+
+ <Routes>
+   <Route path="/new" element={<New/>} />
+   <Route path="/old" element={<Navigate to="/new" />} />
+ </Routes>
+
+Программная переадресация выполняется с пом. хука useNavigate().
+
+ const Old = () => {
+   const { id } = useParams();
+   const navigate = useNavigate();
+
+   const handleClick = async (e) => {
+     navigate(`/new/${id}`);
+   };
+
+   return <button onClick={handleClick}>Redirect</button>;
+ };
 
 -------------
 
