@@ -641,7 +641,7 @@ React Router 6.4+, вместо простого fetch).
 Каждый маршрут должен быть связан с определенным компонентом. По умолчанию используется
 точное сопоставление шаблона из path, с URL строкой в браузере.
 
-Дочерние маршруты можно просто задать в одном из обрабатываемых компонентах. 
+Дочерние маршруты можно задать в одном из обрабатываемых компонентах напрямую. 
 Но более правильным решением является использования компонента <Outlet> который подобен
 пропсу children, только в контексте маршрутов.
 
@@ -658,8 +658,8 @@ React Router 6.4+, вместо простого fetch).
      <>  
        <h2>Товары</h2> 
        <Routes> 
-         <Route path="/phones" element={<Phone />} /> 
-         <Route path="/tablets" element={<Tablet />} /> 
+         <Route path="/phone" element={<Phone />} /> 
+         <Route path="/tablet" element={<Tablet />} /> 
        </Routes>
      </>
    );
@@ -667,11 +667,11 @@ React Router 6.4+, вместо простого fetch).
 
  // Альтернативный вариант, с использованием <Outlet />
  // В этом случае, все маршруты будут задаваться в одном месте
- // Атрибут index задает основной подмашрут.
+ // Атрибут index задает главный подмашрут.
  
  <Route path="/products" element={<Products />}>
-   <Route path="phones" element={<Phone />} />
-   <Route index path="tablets" element={<Tablet />} />
+   <Route index element={<Phone />} />
+   <Route path="tablet" element={<Tablet />} />
  </Route>
 
  const Products = () => {
@@ -683,7 +683,52 @@ React Router 6.4+, вместо простого fetch).
    );
  };
 
-Создание ссылок...
+Параметры маршрута задаются через двоеточие в строке path. Необязательный параметр задается 
+с вопросительным знаком. Чтобы получить значение пар-ров в коде, используется хук useParams().
+
+ <Route path="/products" element={<Products />}>
+
+   // К этому маршруту можно обратится так: /products/5
+   <Route path=":id" element={<Phone />} />
+
+   // Маршрут с необязательным пар-ром
+   <Route path=":name?" element={<Product />} />
+
+   // Маршрут с двумя пар-рами: /products/apple/ipad/504386 
+   <Route path="apply/:name/:id" element={<Tablet />} />
+
+ </Route>
+
+ const Tablet = () => {
+   const { name, id } = useParams();
+   ...
+ };
+
+Маршрутные ссылки задаются с пом. компонента Link. Путь перехода определяется через атрибут
+to. Кроме этого, есть еще компонент NavLink. Он аналогичен предыдущему, но дополнительно
+имеет активное состояние, которое можно стилизоать через атрибуты className или style 
+(эти атрибуты принимают колбек, в параметрах которого доступно состояние isActive).
+
+ const Nav = () => {
+   return (
+     <nav>
+       <Link to="/">Главная</Link>
+       <Link to="/products">Товары</Link>
+     </nav>
+   );
+ }; 
+
+ const Nav = () => {
+   const setActive = ({ isActive }) => isActive ? "active" : "";
+   return (
+     <nav>
+       <NavLink to="/" className={setActive}>Главная</NavLink>
+       <NavLink to="/products" className={setActive}>Товары</NavLink>
+     </nav>
+   );
+ }; 
+
+Ссылки с параметрами...
 
 -------------
 
