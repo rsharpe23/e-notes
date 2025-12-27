@@ -532,6 +532,7 @@ Development и Production сборку можно задать через пер
  3) Начать прослушивание.
 
  // Обработчики маршрутов с GET-запросами задаются через app.get()
+ // Задать обработчик можно также через post(), put(), delete(), use().
  // Начало прослушивания задается через app.listen()
 
  const express = require('express');
@@ -569,26 +570,29 @@ Development и Production сборку можно задать через пер
 Если в мидлваре не вызвать next(), то он прервет цепочку вызовов. 
 В этом случае он может сам отправить ответ.
 
-Для отправки ответа используется метод res.send(). Он отправляет: строку, объект, 
-массив или бинарные данные (объект Buffer). Отправить содержимое файла можно 
-с пом. метода sendFile().
+Для отправки ответа используется метод res.send(). Он может отправлять: строку, объект,
+массив или бинарные данные (объект Buffer). Отправить содержимое файла можно с пом. метода
+sendFile(). Cтатус код можно отправить с пом. метода sendStatus() или status(). 
 
  // При отправки бинарных данных, браузер загрузит файл с "Hello Express"
  res.send(Buffer.from("Hello Express"));  
 
- // Нужно передавать абсолютный путь к файлу
+ // Здесь нужно передавать абсолютный путь к файлу
  res.sendFile(__dirname + "/index.html");
 
-Ф-ции status() и sendStatus() позволяют отправить статус код.
-
- // Отправляем сообщение вместе со статус кодом
+ // Отправляет сообщение вместе со статус кодом
  res.status(404).send('Ресурс не найден');
+
+ // Отправляет json-строку. Под капотом использует send() 
+ // с заголовком Content-Type: application/json
+
+ res.json({ msg: responseText });
 
 Чтобы указать директорию по которой будут доступны статические файлы, 
 используется мидлвар express.static().
 
  // Статические из папки public будут доступны по ссылке http://localhost:3000
- // Например: http://localhost:3000/styles.css
+ // Обращение к конкретному файлу: http://localhost:3000/styles.css
 
  app.use(express.static("public"));
 
@@ -597,7 +601,99 @@ Development и Production сборку можно задать через пер
  
  app.use("/static", express.static("public"));
 
-Маршрутизация...
+Шаблоны маршрутов могут содержать символы подстановок и регулярные выр-я.
+
+ // Маршрут будет соответсвовать шаблону '/book' или '/book.html'
+ app.get('/book(.html)?', (req, res) => { });
+
+ // Маршрут будет соответсвовать всем путям, которые имеют '.html'
+ app.get(/.*(\.)html$/, (req, res) => { });
+
+Чтобы выполнить переадресацию, используется метод redirect(). Ему можно передавать 
+как относительный путь, так и абсолютный, в т.ч. на другие домены. 
+  
+ app.use('/home', (_, res) => {
+   // Если не передать статус код, то по умолчанию будет использ. 302 
+   res.redirect(301, 'https://newsite.com');
+ });
+
+ app.use('/home/foo/bar', (_, res) => {
+   res.redirect('/about');    -->  http://localhost:300/about
+
+   res.redirect('about');     -->  http://localhost:300/home/foo/about
+   res.redirect('./about');   -->  тоже самое
+   res.redirect('../about');  -->  http://localhost:300/home/about
+
+   res.redirect('.');         -->  http://localhost:300/home/foo 
+   res.redirect('..');        -->  http://localhost:300/home
+ });
+
+Параметры строки запроса можно получить с пом. свойства query, объекта Request.
+Строка запроса может содержать не только пары ключ-значение, но и массивы с объектами.
+ 
+ app.get('/', (req) => {
+   const { id, name } = req.query;         // ?id=3&name=Tom
+   const { name: userNames } = req.query;  // ?name=Tom&name=Bob
+   const { user } = req.query;             // ?user[id]=7&user[name]=Tom
+ });
+
+Параметры маршрута можно получить с пом. свойства params, объекта Request. 
+Параметры отделяются от маршрута знаком двоеточния.
+
+ app.get('/products/:productId', (req) => {
+   const { productId } = req.params;  // products/9 или products/phone
+ });
+
+ app.get('/categories/:category/products/:product', (req) => {
+   const { category, product } = req.params;  // categories/phones/products/iphone4
+ });
+
+ app.get('/book/:pageName.:pageExt', (req) => {
+   const { pageName, pageExt } = req.params;  // book/storybook.php
+ });
+
+Получить данные с формы можно с пом. обработки POST-запроса. При этом, данные формы должны
+быть правильно распарсены. Поэтому обработчику доп. задается парсер urlencodedParser. 
+
+ // Опция extended со значением false в urlencoded() означает, что body будет представять 
+ // из себя набор пар ключ-значение, где значение - это либо строка, либо массив
+ const urlencodedParser = express.urlencoded({ extended: false });
+
+ // Если форма присылает json, то используется jsonParser
+ const jsonParser = express.json();  
+
+ // Маршрут '/hello' соответсвует экшену формы.
+ // Данные в body соответсвуют значениям из атрибутов name, инпутов формы.
+
+ app.post('/hello', urlencodedParser, (req, res) => {
+   const { userName, userAge } = req.body;
+ });
+
+Если требуется чтобы приходящие данные парсились в json во всех обработчиках, 
+то парсер можно задать глобально:
+
+ app.use(express.json());  // теперь не нужно отдельно передавать парсер в обработчики
+
+Чтобы определить дочерние маршруты относительно одного родительского маршрута,
+можно использовать объект Router.
+
+ const productRouter = express.Router();
+
+ productRouter.use('/create', () => { });  // products/create
+ productRouter.use('/:id', () => { });     // products/4
+ productRouter.use('/', () => { });        // products
+
+ app.use('/products', productRouter)
+
+Архитектура REST предполагает использование методов HTTP-запросов 
+(GET, POST, PUT, DELETE) для взаимодействия с сервером.
+
+Чем отличается асинхронный обработчик от синхронного?
+ app.post("/api/users", async(req, res) => { });
+
+Сгенерировать случайный id можно с пом. встроенной ф-ции crypto.randomUUID();
+
+Представления и движок представлений Handlebars...
 
 ------------------------
 
