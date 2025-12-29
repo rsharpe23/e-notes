@@ -594,7 +594,7 @@ sendFile(). Cтатус код можно отправить с пом. мето
 используется мидлвар express.static().
 
  // Статические из папки public будут доступны по ссылке http://localhost:3000
- // Обращение к конкретному файлу: http://localhost:3000/styles.css
+ // Обращение к конкретному файлу: http://localhost:3000/about.html
 
  app.use(express.static("public"));
 
@@ -715,6 +715,63 @@ html готовой страницы или json-данные.
 ------------------------
 
 РАБОТА С MONGODB
+
+Чтобы начать работать с MongoDB, нужно либо установить ее локально, либо использовать Cloud,
+зарегистрировавшись на их официальном сайте (есть бесплатный тариф).
+
+Для локальной установки нужно просто скачать и распаковать архив сервера БД.
+https://www.mongodb.com/try/download/community
+
+Перед началом работы нужно запустить сервер командой mongod (это программа из папки 
+mongodb/bin). Также нужно не забыть создать папку, где будут храниться сами БД 
+(если таковой еще нет). В Windows - это C:\data\db
+
+Для работы с сервером понадобится клиент. В качестве клиента может использоваться консольное
+приложение MongoDB Shell или GUI-приложение - MongoDB Compass (устанавливаются отдельно). 
+А для работы с сервером через Node.js понадобится драйвер - MongoDB Node.js Driver 
+или ORM - Mongoose (предоставляет более высокоуровневый API).
+
+Для подключения к серверу использ. такой URL - "mongodb://user:password@host:port/?options"
+Ниже приведен пример подключения через MongoDB Node.js Driver.
+
+ const mongodb = require('mongodb');
+
+ // Сервер MongoDB по умолчанию запускается на порту 27017
+ const client = new mongodb.MongoClient('mongodb://127.0.0.1:27017'); 
+ const mongoClient = await client.connect();
+
+ console.log(mongoClient.options.dbName));  // выводим информацию о текущей БД
+ mongoClient.close();  // закрываем сервер после завершения работы с БД
+
+Базы данных в MongoDB не имеют таблиц. Вместо этого используются коллекции, которые хранят
+данные в виде документов. БД и их коллекции создаются автоматически, при первом обращении.
+Для работы с коллекциями используется простой API: find(), findOne(), insertOne() и пр.
+
+ const db = mongoClient.db('mydb');
+ const collection = db.collection('users');
+
+ // Получаем кол-во документов в коллекции
+ const res1 = await collection.countDocuments();  
+
+ const res2 = await collection.insertOne({ name: 'Tom', age: 23 });
+ const res3 = await collection.find().toArray();
+
+ // Находим один документ и обновляем его. Первый параметр задает критерий поиска, 
+ // а второй - обновляет значения. Возвращаемое значение - это найденный документ 
+ // до обновления. Если нужно получать документ после обновления, то нужно задать 
+ // третий параметр со значением { returnDocument: 'after' }
+
+ const res4 = await collection.findOneAndUpdate({ age: 23 }, { $set: { age: 25 } });
+
+ // Удаляем всех пользователей с именем Admin
+ const res5 = await collection.deleteMany({ name: 'Admin' });  
+
+ // Удаляем коллекцию из БД. Если удалить последнюю коллекции,
+ // то вместе с ней удалится и сама БД.
+
+ const res6 = await collection.drop();
+
+Mongoose...
 
 ------------------------
 
