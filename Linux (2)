@@ -389,6 +389,11 @@ cat file.txt | tr a-z A-Z > file2.txt  -->  тоже самое, но резул
  zip myfiles.zip book.pdf image.png
  unzip myfiles.zip
 
+Иногда, при распаковке архива возникает ошибка - "An error occurred while loading archive".
+Это происходит из-за того, что архив сделан в Windows, а распаковать его пытаются в Linux. 
+В этом случае, нужно либо запустить Windows-утилиту через Wine (например WinRar) 
+и уже через нее распаковывать архив, либо испльзовать 7z в Linux.
+
 ------------------
 
 ПОЛЬЗОВАТЕЛИ И ГРУППЫ
