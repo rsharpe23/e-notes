@@ -2,6 +2,7 @@
 
 Версия 19.1
 
+Создание проекта через Vite:       npx create vite@latest my-app  
 Создание простого проекта:         npx create-react-app my-app
 Создание проекта с маршрутизацией: npx create-react-router@latest
 Создание проекта на Next.js:       npx create-next-app@latest
